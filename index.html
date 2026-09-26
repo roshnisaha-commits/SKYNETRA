@@ -1,0 +1,3149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Anti-Drone Simulation</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#02080c;
+    color:#eafaff;
+}
+
+header{
+    height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 14px;
+    background:#07171f;
+    border-bottom:1px solid #294650;
+}
+
+.title{
+    font-size:16px;
+    font-weight:bold;
+}
+
+.subtitle{
+    margin-top:3px;
+    font-size:9px;
+    color:#8faab3;
+}
+
+.headerRight{
+    display:flex;
+    gap:6px;
+}
+
+.badge{
+    padding:6px 9px;
+    border-radius:15px;
+    background:#102a34;
+    border:1px solid #294650;
+    font-size:8px;
+}
+
+.dashboard{
+    width:100%;
+    height:calc(100vh - 58px);
+    display:grid;
+    grid-template-columns:63% 37%;
+}
+
+.radarArea{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#010507;
+    border-right:1px solid #294650;
+}
+
+#radar{
+    width:min(76vh,820px);
+    height:min(76vh,820px);
+    max-width:95%;
+    max-height:95%;
+    cursor:crosshair;
+}
+
+.radarInfo{
+    position:absolute;
+    top:10px;
+    left:10px;
+    padding:8px;
+    background:#06161d;
+    border:1px solid #294650;
+    border-radius:6px;
+    font-size:8px;
+    line-height:1.6;
+}
+
+.radarInfo strong{
+    color:#6de6ff;
+    font-size:10px;
+}
+
+.legend{
+    position:absolute;
+    bottom:9px;
+    left:9px;
+    padding:7px 9px;
+    background:#06161d;
+    border:1px solid #294650;
+    border-radius:6px;
+    font-size:8px;
+    line-height:1.6;
+}
+
+.controlArea{
+    height:100%;
+    padding:7px;
+    display:grid;
+    grid-template-rows:auto auto minmax(125px,.8fr) minmax(220px,1.6fr);
+    gap:7px;
+    background:#050e13;
+    overflow:hidden;
+}
+
+.panel{
+    min-height:0;
+    padding:8px;
+    background:#071921;
+    border:1px solid #294650;
+    border-radius:7px;
+}
+
+.panelTitle{
+    margin-bottom:7px;
+    font-size:9px;
+    font-weight:bold;
+    color:#bdeefa;
+}
+
+.controlGrid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:5px;
+}
+
+button{
+    padding:7px 4px;
+    border:0;
+    border-radius:5px;
+    background:#17647c;
+    color:white;
+    font-size:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    filter:brightness(1.3);
+}
+
+button:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+.green{background:#19784f;}
+.orange{background:#96641c;}
+.red{background:#87363d;}
+.purple{background:#65489c;}
+.darkRed{background:#9b3434;}
+.blue{background:#285e9b;}
+
+.jammerBox{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:2px;
+}
+
+.jammerLabel{
+    font-size:7px;
+    color:#9db7bf;
+}
+
+.timer{
+    font-size:14px;
+    font-weight:bold;
+    color:#ffd166;
+}
+
+.environment{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:5px;
+}
+
+.env{
+    padding:5px;
+    background:#041117;
+    border:1px solid #294650;
+    border-radius:5px;
+}
+
+.env label{
+    display:block;
+    margin-bottom:3px;
+    color:#9db7bf;
+    font-size:7px;
+}
+
+select{
+    width:100%;
+    padding:4px;
+    border:1px solid #315762;
+    border-radius:4px;
+    background:#0b2730;
+    color:white;
+    font-size:7px;
+}
+
+.currentGrid{
+    height:calc(100% - 18px);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+.currentBox{
+    padding:7px;
+    background:#031016;
+    border:1px solid #203c46;
+    border-radius:5px;
+    overflow:auto;
+    font-size:8px;
+    line-height:1.5;
+}
+
+.currentBox h4{
+    margin:0 0 6px;
+    color:#6de6ff;
+    font-size:9px;
+}
+
+.dataRow{
+    display:flex;
+    justify-content:space-between;
+    gap:5px;
+    padding:3px 0;
+    border-bottom:1px solid #153039;
+}
+
+.low{color:#61ef9a;}
+.medium{color:#ffd166;}
+.high{color:#ff8b75;}
+.critical{color:#ff3d3d;}
+
+.assessmentPanel{
+    display:flex;
+    flex-direction:column;
+}
+
+.assessmentList{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:5px;
+    overflow-y:auto;
+}
+
+.assessment{
+    padding:7px;
+    min-height:75px;
+    background:#031016;
+    border:1px solid #284650;
+    border-radius:5px;
+}
+
+.assessmentHeader{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:4px;
+    font-size:8px;
+    font-weight:bold;
+}
+
+.assessmentReason{
+    color:#9fb7bf;
+    font-size:7px;
+    line-height:1.35;
+}
+
+.bar{
+    height:5px;
+    margin-top:5px;
+    background:#162a31;
+    border-radius:5px;
+    overflow:hidden;
+}
+
+.barInner{
+    height:100%;
+    background:#e04b45;
+}
+
+::-webkit-scrollbar{
+    width:5px;
+}
+
+::-webkit-scrollbar-track{
+    background:#02080c;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#315762;
+    border-radius:5px;
+}
+
+@media(max-width:900px){
+
+    body{
+        overflow:auto;
+    }
+
+    .dashboard{
+        height:auto;
+        grid-template-columns:1fr;
+    }
+
+    .radarArea{
+        height:65vh;
+    }
+
+    .controlArea{
+        height:auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div>
+    <div class="title">
+        AI HIGH-ALTITUDE ANTI-DRONE COMMAND SYSTEM
+    </div>
+
+    <div class="subtitle">
+        Radar • AI Identification • Environmental Simulation • Counter-Drone Inspection
+    </div>
+</div>
+
+<div class="headerRight">
+
+    <div class="badge" id="radarBadge">
+        RADAR OFF
+    </div>
+
+    <div class="badge">
+        15 DRONES
+    </div>
+
+    <div class="badge">
+        5 OTHER OBJECTS
+    </div>
+
+    <div class="badge" id="aiBadge">
+        AI STANDBY
+    </div>
+
+</div>
+
+</header>
+
+
+<div class="dashboard">
+
+<!-- RADAR AREA -->
+
+<section class="radarArea">
+
+<canvas id="radar" width="800" height="800"></canvas>
+
+<div class="radarInfo">
+
+<strong>LIVE RADAR</strong>
+
+<br>
+
+20 airborne tracks
+
+<br>
+
+Click an object to select it
+
+<br>
+
+<span id="radarState">
+Radar offline
+</span>
+
+</div>
+
+
+<div class="legend">
+
+🟡 Drone
+
+<br>
+
+🟢 Bird
+
+<br>
+
+🔵 Aircraft
+
+<br>
+
+🟣 Other
+
+<br>
+
+🔴 High threat
+
+<br>
+
+⭕ Jammer effect
+
+<br>
+
+✚ Counter-drone
+
+<br>
+
+◎ Selected
+
+<br>
+
+▦ Net
+
+<br>
+
+⬡ Counter-drone base
+
+</div>
+
+</section>
+
+
+<!-- CONTROL AREA -->
+
+<section class="controlArea">
+
+
+<!-- MISSION CONTROL -->
+
+<div class="panel">
+
+<div class="panelTitle">
+MISSION CONTROL
+</div>
+
+<div class="controlGrid">
+
+<button
+class="green"
+id="radarButton"
+onclick="toggleRadar()">
+START RADAR
+</button>
+
+<button
+class="blue"
+onclick="startAI()">
+START AI
+</button>
+
+<button
+class="orange"
+onclick="toggleJammer()"
+id="jammerButton">
+START JAMMER
+</button>
+
+<button
+class="green"
+onclick="releaseCounterDrone()">
+RELEASE COUNTER-DRONE
+</button>
+
+<button
+class="purple"
+id="inspectButton"
+onclick="inspectSelectedObject()"
+disabled>
+INSPECT SELECTED
+</button>
+
+<button
+class="purple"
+onclick="callCounterDroneBack()">
+CALL COUNTER-DRONE BACK
+</button>
+
+<button
+class="darkRed"
+onclick="stopJammerEarly()">
+STOP JAMMER
+</button>
+
+<button
+class="purple"
+id="netButton"
+onclick="releaseNet()"
+disabled>
+RELEASE NET
+</button>
+
+<button
+class="red"
+onclick="resetSystem()">
+RESET
+</button>
+
+<div class="jammerBox">
+
+<div class="jammerLabel">
+SIMULATED JAMMER TIMER
+</div>
+
+<div
+class="timer"
+id="timer">
+05:00
+</div>
+
+</div>
+
+</div>
+</div>
+
+
+<!-- ENVIRONMENT -->
+
+<div class="panel">
+
+<div class="panelTitle">
+🌍 ENVIRONMENTAL CONDITIONS
+</div>
+
+<div class="environment">
+
+<div class="env">
+
+<label>
+Temperature
+</label>
+
+<select id="temperature">
+
+<option value="normal">
+Normal
+</option>
+
+<option value="cold" selected>
+Very Cold
+</option>
+
+<option value="extreme">
+Extreme Cold
+</option>
+
+</select>
+
+</div>
+
+
+<div class="env">
+
+<label>
+Wind
+</label>
+
+<select id="wind">
+
+<option value="low">
+Low
+</option>
+
+<option value="medium" selected>
+Medium
+</option>
+
+<option value="high">
+High
+</option>
+
+</select>
+
+</div>
+
+
+<div class="env">
+
+<label>
+Visibility
+</label>
+
+<select id="visibility">
+
+<option value="clear" selected>
+Clear
+</option>
+
+<option value="hazy">
+Hazy
+</option>
+
+<option value="poor">
+Poor
+</option>
+
+</select>
+
+</div>
+
+
+<div class="env">
+
+<label>
+Snow / Dust
+</label>
+
+<select id="snowdust">
+
+<option value="none">
+None
+</option>
+
+<option value="moderate" selected>
+Moderate
+</option>
+
+<option value="severe">
+Severe
+</option>
+
+</select>
+
+</div>
+
+
+<button
+class="green"
+onclick="applyEnvironment()">
+APPLY
+</button>
+
+</div>
+</div>
+
+
+<!-- CURRENT INFORMATION -->
+
+<div class="panel">
+
+<div class="panelTitle">
+🎯 CURRENT TRACK / COUNTER-DRONE
+</div>
+
+<div class="currentGrid">
+
+<div
+class="currentBox"
+id="selectedBox">
+
+<h4>
+SELECTED OBJECT
+</h4>
+
+No object selected.
+
+<br><br>
+
+Start the radar and click an object.
+
+</div>
+
+
+<div
+class="currentBox"
+id="counterBox">
+
+<h4>
+✚ COUNTER-DRONE
+</h4>
+
+Not deployed.
+
+<br><br>
+
+Press RELEASE COUNTER-DRONE.
+
+</div>
+
+</div>
+</div>
+
+
+<!-- STORED ASSESSMENTS -->
+
+<div class="panel assessmentPanel">
+
+<div class="panelTitle">
+
+📊 STORED THREAT ASSESSMENTS
+
+<span
+style="
+float:right;
+font-weight:normal;
+color:#7899a3;
+">
+
+Results remain stored
+
+</span>
+
+</div>
+
+<div
+class="assessmentList"
+id="assessmentList">
+
+<div
+class="assessment"
+id="emptyAssessment">
+
+Waiting for AI identification and counter-drone inspection...
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+</div>
+
+
+<script>
+
+/* CANVAS */
+
+const canvas =
+document.getElementById("radar");
+
+const ctx =
+canvas.getContext("2d");
+
+const W = 800;
+const H = 800;
+
+const CX = 400;
+const CY = 400;
+
+
+/* COUNTER-DRONE DEPLOYMENT AREA */
+
+const COUNTER_BASE = {
+
+    x:760,
+    y:400
+
+};
+
+
+/* SYSTEM STATE */
+
+let radarOn=false;
+
+let aiRunning=false;
+
+let jammerOn=false;
+
+let jammerTime=300;
+
+let jammerInterval=null;
+
+let counterDrone=null;
+
+let selectedObject=null;
+
+let net=null;
+
+
+/* ENVIRONMENT */
+
+const environment={
+
+    temperature:"cold",
+
+    wind:"medium",
+
+    visibility:"clear",
+
+    snowdust:"moderate"
+
+};
+
+
+/* OBJECT TYPES */
+
+const types=[
+
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+    "DRONE",
+
+    "BIRD",
+    "BIRD",
+
+    "AIRCRAFT",
+    "AIRCRAFT",
+
+    "OTHER"
+
+];
+
+
+/* AIRBORNE OBJECTS */
+
+const objects=[];
+
+for(let i=0;i<20;i++){
+
+    const angle=
+        Math.random()*
+        Math.PI*2;
+
+    const radius=
+        80+
+        Math.random()*270;
+
+    objects.push({
+
+        id:i+1,
+
+        hiddenType:types[i],
+
+        x:
+            CX+
+            Math.cos(angle)*
+            radius,
+
+        y:
+            CY+
+            Math.sin(angle)*
+            radius,
+
+        angle:angle,
+
+        radius:radius,
+
+        speed:
+            .25+
+            Math.random()*.7,
+
+        direction:
+            Math.random()>.5
+            ?1
+            :-1,
+
+        maneuverability:
+            Math.random()*100,
+
+        acceleration:
+            Math.random()*100,
+
+        stability:
+            Math.random()*100,
+
+        radarSignature:
+            Math.random()*100,
+
+        classification:"UNKNOWN",
+
+        confidence:0,
+
+        threatScore:null,
+
+        reason:
+            "Awaiting AI identification.",
+
+        inspected:false,
+
+        jammed:false,
+
+        captured:false,
+
+        electronic:
+            types[i]==="DRONE"
+
+    });
+
+}
+
+
+/* RADAR */
+
+function toggleRadar(){
+
+    radarOn=!radarOn;
+
+    if(radarOn){
+
+        document.getElementById(
+            "radarButton"
+        ).innerText=
+        "STOP RADAR";
+
+        document.getElementById(
+            "radarBadge"
+        ).innerText=
+        "RADAR ONLINE";
+
+        document.getElementById(
+            "radarState"
+        ).innerText=
+        "Radar active";
+
+    }
+
+    else{
+
+        document.getElementById(
+            "radarButton"
+        ).innerText=
+        "START RADAR";
+
+        document.getElementById(
+            "radarBadge"
+        ).innerText=
+        "RADAR OFF";
+
+        document.getElementById(
+            "radarState"
+        ).innerText=
+        "Radar offline";
+
+    }
+
+}
+
+
+/* AI */
+
+function startAI(){
+
+    if(!radarOn){
+
+        alert(
+            "Please start the radar first."
+        );
+
+        return;
+
+    }
+
+
+    if(aiRunning){
+        return;
+    }
+
+
+    aiRunning=true;
+
+
+    document.getElementById(
+        "aiBadge"
+    ).innerText=
+    "AI ANALYZING";
+
+
+    objects.forEach(
+        (obj,index)=>{
+
+            setTimeout(
+                ()=>{
+
+                    identifyObject(obj);
+
+                },
+                index*180
+            );
+
+        }
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            aiRunning=false;
+
+            document.getElementById(
+                "aiBadge"
+            ).innerText=
+            "AI COMPLETE";
+
+        },
+        objects.length*180+400
+    );
+
+}
+
+
+/* AI IDENTIFICATION */
+
+function identifyObject(obj){
+
+    let confidence=96;
+
+
+    if(
+        environment.visibility==="hazy"
+    ){
+
+        confidence-=8;
+
+    }
+
+
+    if(
+        environment.visibility==="poor"
+    ){
+
+        confidence-=18;
+
+    }
+
+
+    if(
+        environment.snowdust==="moderate"
+    ){
+
+        confidence-=5;
+
+    }
+
+
+    if(
+        environment.snowdust==="severe"
+    ){
+
+        confidence-=15;
+
+    }
+
+
+    obj.classification=
+        obj.hiddenType;
+
+
+    obj.confidence=
+        Math.max(
+            55,
+            Math.round(confidence)
+        );
+
+
+    calculateThreat(obj);
+
+}
+
+
+/* THREAT */
+
+function calculateThreat(obj){
+
+    let score=0;
+
+    let reasons=[];
+
+
+    if(
+        obj.classification==="DRONE"
+    ){
+
+        if(
+            obj.maneuverability>60
+        ){
+
+            score+=25;
+
+            reasons.push(
+                "high maneuverability"
+            );
+
+        }
+
+
+        if(
+            obj.acceleration>60
+        ){
+
+            score+=25;
+
+            reasons.push(
+                "unusual acceleration"
+            );
+
+        }
+
+
+        if(
+            obj.radarSignature>65
+        ){
+
+            score+=20;
+
+            reasons.push(
+                "strong radar signature"
+            );
+
+        }
+
+
+        if(
+            obj.stability<40
+        ){
+
+            score+=15;
+
+            reasons.push(
+                "irregular flight stability"
+            );
+
+        }
+
+
+        score+=
+            Math.random()*15;
+
+
+        obj.threatScore=
+            Math.min(
+                99,
+                Math.round(score)
+            );
+
+
+        obj.reason=
+            reasons.length
+            ?
+            reasons.join(", ")+"."
+            :
+            "Limited suspicious indicators detected.";
+
+    }
+
+
+    else if(
+        obj.classification==="AIRCRAFT"
+    ){
+
+        obj.threatScore=
+            Math.round(
+                3+
+                Math.random()*8
+            );
+
+        obj.reason=
+            "Large stable airborne signature with low simulated threat indicators.";
+
+    }
+
+
+    else if(
+        obj.classification==="BIRD"
+    ){
+
+        obj.threatScore=
+            Math.round(
+                1+
+                Math.random()*7
+            );
+
+        obj.reason=
+            "Flight characteristics are consistent with a bird.";
+
+    }
+
+
+    else{
+
+        obj.threatScore=
+            Math.round(
+                4+
+                Math.random()*10
+            );
+
+        obj.reason=
+            "No strong simulated threat indicators detected.";
+
+    }
+
+}
+
+
+/* SIMULATED JAMMER */
+
+function toggleJammer(){
+
+    if(!radarOn){
+
+        alert(
+            "Please start the radar first."
+        );
+
+        return;
+
+    }
+
+
+    if(jammerOn){
+
+        stopJammer();
+
+        return;
+
+    }
+
+
+    jammerOn=true;
+
+    jammerTime=300;
+
+
+    document.getElementById(
+        "jammerButton"
+    ).innerText=
+    "JAMMER ACTIVE";
+
+
+    jammerInterval=
+        setInterval(
+            ()=>{
+
+                /*
+                Accelerated visual timer:
+                2 seconds of simulated time
+                pass for each real second.
+                */
+
+                jammerTime-=2;
+
+
+                if(jammerTime<=0){
+
+                    jammerTime=0;
+
+                    stopJammer();
+
+                }
+
+
+                updateTimer();
+
+            },
+            1000
+        );
+
+}
+
+
+/* STOP JAMMER */
+
+function stopJammer(){
+
+    jammerOn=false;
+
+    clearInterval(
+        jammerInterval
+    );
+
+    jammerInterval=null;
+
+
+    objects.forEach(
+        obj=>{
+
+            obj.jammed=false;
+
+        }
+    );
+
+
+    document.getElementById(
+        "jammerButton"
+    ).innerText=
+    "START JAMMER";
+
+
+    updateTimer();
+
+}
+
+
+function stopJammerEarly(){
+
+    if(!jammerOn){
+        return;
+    }
+
+    stopJammer();
+
+}
+
+
+/* TIMER */
+
+function updateTimer(){
+
+    const minutes=
+        Math.floor(
+            jammerTime/60
+        );
+
+    const seconds=
+        jammerTime%60;
+
+
+    document.getElementById(
+        "timer"
+    ).innerText=
+
+        String(minutes)
+        .padStart(2,"0")
+
+        +
+
+        ":"+
+
+        String(seconds)
+        .padStart(2,"0");
+
+}
+
+
+/* COUNTER DRONE RELEASE */
+
+function releaseCounterDrone(){
+
+    if(!radarOn){
+
+        alert(
+            "Start the radar first."
+        );
+
+        return;
+
+    }
+
+
+    if(counterDrone){
+
+        alert(
+            "Counter-drone is already deployed."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    Start at deployment base.
+    */
+
+    counterDrone={
+
+        x:COUNTER_BASE.x,
+
+        y:COUNTER_BASE.y,
+
+        angle:0,
+
+        target:null,
+
+        speed:3,
+
+        returning:false
+
+    };
+
+
+    updateCounterPanel();
+
+
+    if(selectedObject){
+
+        document.getElementById(
+            "inspectButton"
+        ).disabled=
+            selectedObject.inspected;
+
+    }
+
+}
+
+
+/* CLOSE INSPECTION */
+
+function inspectSelectedObject(){
+
+    if(!radarOn){
+
+        alert(
+            "Start the radar first."
+        );
+
+        return;
+
+    }
+
+
+    if(!counterDrone){
+
+        alert(
+            "Release the counter-drone first."
+        );
+
+        return;
+
+    }
+
+
+    if(!selectedObject){
+
+        alert(
+            "Select an object first."
+        );
+
+        return;
+
+    }
+
+
+    if(selectedObject.inspected){
+
+        alert(
+            "This object has already been inspected."
+        );
+
+        return;
+
+    }
+
+
+    counterDrone.target=
+        selectedObject;
+
+    counterDrone.returning=false;
+
+
+    document.getElementById(
+        "inspectButton"
+    ).disabled=true;
+
+
+    document.getElementById(
+        "netButton"
+    ).disabled=true;
+
+
+    updateCounterPanel();
+
+}
+
+
+/* CALL COUNTER DRONE BACK */
+
+function callCounterDroneBack(){
+
+    if(!counterDrone){
+
+        alert(
+            "Counter-drone is not deployed."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    Cancel inspection.
+    */
+
+    counterDrone.target=null;
+
+
+    /*
+    Start return journey.
+    */
+
+    counterDrone.returning=true;
+
+
+    /*
+    Remove visible net.
+    */
+
+    net=null;
+
+
+    document.getElementById(
+        "netButton"
+    ).disabled=true;
+
+
+    document.getElementById(
+        "inspectButton"
+    ).disabled=
+        !selectedObject ||
+        selectedObject.inspected;
+
+
+    updateCounterPanel();
+
+}
+
+
+/* SELECT OBJECT */
+
+function selectObject(obj){
+
+    selectedObject=obj;
+
+
+    net=null;
+
+
+    document.getElementById(
+        "netButton"
+    ).disabled=true;
+
+
+    document.getElementById(
+        "inspectButton"
+    ).disabled=
+        !counterDrone ||
+        obj.inspected;
+
+
+    updateSelectedPanel();
+
+    updateCounterPanel();
+
+}
+
+
+/* SELECTED OBJECT PANEL */
+
+function updateSelectedPanel(){
+
+    const box=
+        document.getElementById(
+            "selectedBox"
+        );
+
+
+    if(!selectedObject){
+
+        box.innerHTML=`
+
+        <h4>SELECTED OBJECT</h4>
+
+        No object selected.
+
+        <br><br>
+
+        Click an object on the radar.
+
+        `;
+
+        return;
+
+    }
+
+
+    const o=
+        selectedObject;
+
+
+    box.innerHTML=`
+
+    <h4>
+    SELECTED OBJECT O-${o.id}
+    </h4>
+
+
+    <div class="dataRow">
+
+        <span>
+        Classification
+        </span>
+
+        <strong>
+        ${o.classification}
+        </strong>
+
+    </div>
+
+
+    <div class="dataRow">
+
+        <span>
+        AI Confidence
+        </span>
+
+        <strong>
+        ${o.confidence}%
+        </strong>
+
+    </div>
+
+
+    <div class="dataRow">
+
+        <span>
+        Threat Score
+        </span>
+
+        <strong
+        class="${scoreClass(o.threatScore)}">
+
+        ${
+            o.threatScore===null
+            ?
+            "WAITING"
+            :
+            o.threatScore+"/100"
+        }
+
+        </strong>
+
+    </div>
+
+
+    <br>
+
+    <strong>
+    AI Reason
+    </strong>
+
+    <br>
+
+    ${o.reason}
+
+
+    <br><br>
+
+    <strong>
+    Inspection
+    </strong>
+
+    <br>
+
+    ${
+        o.inspected
+        ?
+        "✓ INSPECTION COMPLETE"
+        :
+        counterDrone
+        ?
+        "READY FOR MANUAL INSPECTION"
+        :
+        "COUNTER-DRONE NOT DEPLOYED"
+    }
+
+    `;
+
+
+    if(
+        o.inspected &&
+        counterDrone &&
+        counterDrone.target===o
+    ){
+
+        document.getElementById(
+            "netButton"
+        ).disabled=false;
+
+    }
+
+}
+
+
+/* COUNTER DRONE PANEL */
+
+function updateCounterPanel(){
+
+    const box=
+        document.getElementById(
+            "counterBox"
+        );
+
+
+    if(!counterDrone){
+
+        box.innerHTML=`
+
+        <h4>
+        ✚ COUNTER-DRONE
+        </h4>
+
+        Not deployed.
+
+        <br><br>
+
+        Release the counter-drone.
+
+        `;
+
+        return;
+
+    }
+
+
+    if(counterDrone.returning){
+
+        box.innerHTML=`
+
+        <h4>
+        ✚ COUNTER-DRONE
+        </h4>
+
+        <strong>
+        RETURNING TO DEPLOYMENT AREA
+        </strong>
+
+        <br><br>
+
+        Flying outside the radar.
+
+        <br><br>
+
+        Destination:
+
+        <strong>
+        COUNTER BASE
+        </strong>
+
+        `;
+
+        return;
+
+    }
+
+
+    if(counterDrone.target){
+
+        const target=
+            counterDrone.target;
+
+
+        box.innerHTML=`
+
+        <h4>
+        ✚ COUNTER-DRONE
+        </h4>
+
+        <strong>
+        ${
+            target.inspected
+            ?
+            "INSPECTION COMPLETE"
+            :
+            "INSPECTING TARGET"
+        }
+        </strong>
+
+        <br><br>
+
+        Target:
+
+        <strong>
+        O-${target.id}
+        </strong>
+
+        <br><br>
+
+        ${
+            target.inspected
+            ?
+            "✓ Close inspection completed."
+            :
+            "Counter-drone approaching target..."
+        }
+
+        `;
+
+    }
+
+    else{
+
+        box.innerHTML=`
+
+        <h4>
+        ✚ COUNTER-DRONE
+        </h4>
+
+        <strong>
+        STANDBY
+        </strong>
+
+        <br><br>
+
+        Counter-drone is at deployment area.
+
+        <br><br>
+
+        Select an object and press INSPECT SELECTED.
+
+        `;
+
+    }
+
+}
+
+
+/* COMPLETE INSPECTION */
+
+function completeInspection(obj){
+
+    if(obj.inspected){
+        return;
+    }
+
+
+    obj.inspected=true;
+
+
+    if(
+        obj.classification==="DRONE"
+    ){
+
+        obj.threatScore=
+            Math.min(
+                99,
+                obj.threatScore+
+                Math.round(
+                    Math.random()*10
+                )
+            );
+
+
+        if(
+            obj.threatScore>=75
+        ){
+
+            obj.reason+=
+                " Close inspection found multiple suspicious indicators.";
+
+        }
+
+        else if(
+            obj.threatScore>=45
+        ){
+
+            obj.reason+=
+                " Close inspection found moderate suspicious indicators.";
+
+        }
+
+        else{
+
+            obj.reason+=
+                " Close inspection found limited suspicious indicators.";
+
+        }
+
+    }
+
+
+    saveAssessment(obj);
+
+
+    if(
+        selectedObject===obj
+    ){
+
+        document.getElementById(
+            "netButton"
+        ).disabled=false;
+
+    }
+
+
+    updateSelectedPanel();
+
+    updateCounterPanel();
+
+}
+
+
+/* STORE ASSESSMENT */
+
+function saveAssessment(obj){
+
+    const empty=
+        document.getElementById(
+            "emptyAssessment"
+        );
+
+
+    if(empty){
+        empty.remove();
+    }
+
+
+    const existing=
+        document.getElementById(
+            "assessment-"+obj.id
+        );
+
+
+    if(existing){
+        existing.remove();
+    }
+
+
+    const card=
+        document.createElement("div");
+
+
+    card.className=
+        "assessment";
+
+
+    card.id=
+        "assessment-"+obj.id;
+
+
+    card.innerHTML=`
+
+    <div class="assessmentHeader">
+
+        <span>
+        OBJECT O-${obj.id}
+        </span>
+
+        <span
+        class="${scoreClass(obj.threatScore)}">
+
+        ${obj.threatScore}/100
+
+        </span>
+
+    </div>
+
+
+    <strong>
+    ${obj.classification}
+    </strong>
+
+
+    <div class="assessmentReason">
+
+    ${obj.reason}
+
+    </div>
+
+
+    <div class="bar">
+
+        <div
+        class="barInner"
+        style="
+        width:${obj.threatScore}%;
+        ">
+        </div>
+
+    </div>
+
+
+    <div
+    style="
+    margin-top:4px;
+    font-size:7px;
+    color:#61ef9a;
+    ">
+
+    ✓ INSPECTED & STORED
+
+    </div>
+
+    `;
+
+
+    document
+        .getElementById(
+            "assessmentList"
+        )
+        .prepend(card);
+
+}
+
+
+/* NET */
+
+function releaseNet(){
+
+    if(!counterDrone){
+
+        alert(
+            "Release the counter-drone first."
+        );
+
+        return;
+
+    }
+
+
+    if(!selectedObject){
+
+        alert(
+            "Select an object first."
+        );
+
+        return;
+
+    }
+
+
+    if(!selectedObject.inspected){
+
+        alert(
+            "Inspect the selected object first."
+        );
+
+        return;
+
+    }
+
+
+    net={
+
+        active:true,
+
+        target:selectedObject,
+
+        progress:0,
+
+        captured:false
+
+    };
+
+
+    document.getElementById(
+        "netButton"
+    ).disabled=true;
+
+}
+
+
+/* NET UPDATE */
+
+function updateNet(){
+
+    if(
+        !net ||
+        !net.active ||
+        !net.target
+    ){
+
+        return;
+
+    }
+
+
+    if(net.progress<1){
+
+        net.progress+=.018;
+
+    }
+
+
+    if(net.progress>=1){
+
+        net.progress=1;
+
+        net.captured=true;
+
+        net.target.captured=true;
+
+    }
+
+}
+
+
+/* DRAW NET */
+
+function drawNet(){
+
+    if(
+        !net ||
+        !net.active ||
+        !net.target
+    ){
+
+        return;
+
+    }
+
+
+    const target=
+        net.target;
+
+
+    const expansion=
+        25+
+        net.progress*65;
+
+
+    ctx.strokeStyle=
+        net.captured
+        ?
+        "#61ef9a"
+        :
+        "#ffffff";
+
+
+    ctx.lineWidth=2;
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        target.x,
+        target.y,
+        expansion,
+        0,
+        Math.PI*2
+    );
+
+    ctx.stroke();
+
+
+    ctx.save();
+
+
+    ctx.translate(
+        target.x,
+        target.y
+    );
+
+
+    ctx.strokeStyle=
+        net.captured
+        ?
+        "#61ef9a"
+        :
+        "#d9f7ff";
+
+
+    ctx.lineWidth=1;
+
+
+    const grid=
+        Math.max(
+            12,
+            expansion/4
+        );
+
+
+    for(
+        let x=-expansion;
+        x<=expansion;
+        x+=grid
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            -expansion
+        );
+
+        ctx.lineTo(
+            x,
+            expansion
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    for(
+        let y=-expansion;
+        y<=expansion;
+        y+=grid
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -expansion,
+            y
+        );
+
+        ctx.lineTo(
+            expansion,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    ctx.restore();
+
+
+    ctx.fillStyle=
+        net.captured
+        ?
+        "#61ef9a"
+        :
+        "#ffffff";
+
+
+    ctx.font=
+        "bold 10px Arial";
+
+
+    ctx.fillText(
+
+        net.captured
+        ?
+        "NET CAPTURED"
+        :
+        "NET DEPLOYING",
+
+        target.x+
+        expansion+
+        7,
+
+        target.y
+
+    );
+
+}
+
+
+/* OBJECT MOVEMENT */
+
+function updateObjects(){
+
+    if(!radarOn){
+        return;
+    }
+
+
+    objects.forEach(
+        obj=>{
+
+            if(obj.captured){
+                return;
+            }
+
+
+            /*
+            Simulated electronic effect.
+            Aircraft and birds continue moving.
+            */
+
+            if(
+                jammerOn &&
+                obj.electronic
+            ){
+
+                obj.jammed=true;
+
+                return;
+
+            }
+
+
+            obj.jammed=false;
+
+
+            let windMultiplier=1;
+
+
+            if(
+                environment.wind==="medium"
+            ){
+
+                windMultiplier=1.15;
+
+            }
+
+
+            if(
+                environment.wind==="high"
+            ){
+
+                windMultiplier=1.35;
+
+            }
+
+
+            obj.angle+=
+
+                obj.direction*
+                obj.speed*
+                .004*
+                windMultiplier;
+
+
+            obj.radius+=
+
+                Math.sin(
+                    Date.now()/1500+
+                    obj.id
+                )*.04;
+
+
+            if(
+                obj.radius>350
+            ){
+
+                obj.direction=-1;
+
+            }
+
+
+            if(
+                obj.radius<80
+            ){
+
+                obj.direction=1;
+
+            }
+
+
+            obj.x=
+
+                CX+
+                Math.cos(
+                    obj.angle
+                )*
+                obj.radius;
+
+
+            obj.y=
+
+                CY+
+                Math.sin(
+                    obj.angle
+                )*
+                obj.radius;
+
+        }
+    );
+
+
+    /* COUNTER DRONE */
+
+    if(counterDrone){
+
+        /* RETURN TO BASE */
+
+        if(counterDrone.returning){
+
+            const dx=
+                COUNTER_BASE.x-
+                counterDrone.x;
+
+            const dy=
+                COUNTER_BASE.y-
+                counterDrone.y;
+
+            const distance=
+                Math.sqrt(
+                    dx*dx+
+                    dy*dy
+                );
+
+
+            if(distance>8){
+
+                counterDrone.x+=
+                    (dx/distance)*
+                    counterDrone.speed;
+
+                counterDrone.y+=
+                    (dy/distance)*
+                    counterDrone.speed;
+
+            }
+
+            else{
+
+                counterDrone.x=
+                    COUNTER_BASE.x;
+
+                counterDrone.y=
+                    COUNTER_BASE.y;
+
+                counterDrone.returning=false;
+
+                counterDrone.target=null;
+
+                updateCounterPanel();
+
+            }
+
+        }
+
+
+        /* INSPECTION */
+
+        else if(
+            counterDrone.target
+        ){
+
+            const target=
+                counterDrone.target;
+
+
+            if(target.captured){
+
+                counterDrone.x=
+                    target.x-50;
+
+                counterDrone.y=
+                    target.y-50;
+
+            }
+
+            else{
+
+                const dx=
+                    target.x-
+                    counterDrone.x;
+
+                const dy=
+                    target.y-
+                    counterDrone.y;
+
+                const distance=
+                    Math.sqrt(
+                        dx*dx+
+                        dy*dy
+                    );
+
+
+                if(distance>45){
+
+                    counterDrone.x+=
+                        (dx/distance)*
+                        counterDrone.speed;
+
+                    counterDrone.y+=
+                        (dy/distance)*
+                        counterDrone.speed;
+
+                }
+
+                else{
+
+                    counterDrone.angle+=.035;
+
+
+                    counterDrone.x=
+
+                        target.x+
+                        Math.cos(
+                            counterDrone.angle
+                        )*45;
+
+
+                    counterDrone.y=
+
+                        target.y+
+                        Math.sin(
+                            counterDrone.angle
+                        )*45;
+
+
+                    completeInspection(
+                        target
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /* STANDBY AT BASE */
+
+        else{
+
+            counterDrone.x=
+                COUNTER_BASE.x;
+
+            counterDrone.y=
+                COUNTER_BASE.y;
+
+        }
+
+    }
+
+
+    updateNet();
+
+}
+
+
+/* DRAW RADAR */
+
+function drawRadar(){
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /* BACKGROUND */
+
+    ctx.fillStyle="#02070a";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /* RADAR RINGS */
+
+    ctx.strokeStyle="#174754";
+
+    ctx.lineWidth=1;
+
+
+    for(
+        let r=70;
+        r<=350;
+        r+=55
+    ){
+
+        ctx.beginPath();
+
+        ctx.arc(
+            CX,
+            CY,
+            r,
+            0,
+            Math.PI*2
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /* CROSSHAIR */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        CX-350,
+        CY
+    );
+
+    ctx.lineTo(
+        CX+350,
+        CY
+    );
+
+    ctx.moveTo(
+        CX,
+        CY-350
+    );
+
+    ctx.lineTo(
+        CX,
+        CY+350
+    );
+
+    ctx.stroke();
+
+
+    /* SWEEP */
+
+    if(radarOn){
+
+        const sweep=
+            Date.now()/1000;
+
+        const angle=
+            sweep%(Math.PI*2);
+
+
+        ctx.strokeStyle="#35d29a";
+
+        ctx.lineWidth=2;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            CX,
+            CY
+        );
+
+        ctx.lineTo(
+
+            CX+
+            Math.cos(angle)*
+            345,
+
+            CY+
+            Math.sin(angle)*
+            345
+
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /* COUNTER BASE */
+
+    ctx.fillStyle="#0a2028";
+
+    ctx.fillRect(
+        COUNTER_BASE.x-25,
+        COUNTER_BASE.y-25,
+        50,
+        50
+    );
+
+
+    ctx.strokeStyle="#4f9aaa";
+
+    ctx.lineWidth=2;
+
+    ctx.strokeRect(
+        COUNTER_BASE.x-25,
+        COUNTER_BASE.y-25,
+        50,
+        50
+    );
+
+
+    ctx.fillStyle="#8fd7e8";
+
+    ctx.font="9px Arial";
+
+    ctx.fillText(
+        "COUNTER BASE",
+        COUNTER_BASE.x-38,
+        COUNTER_BASE.y+40
+    );
+
+
+    /* OBJECTS */
+
+    objects.forEach(
+        obj=>{
+
+            let color="#55bcd9";
+
+            let size=7;
+
+
+            if(
+                obj.classification==="DRONE"
+            ){
+
+                color="#ffd166";
+
+            }
+
+
+            if(
+                obj.classification==="BIRD"
+            ){
+
+                color="#61ef9a";
+
+                size=6;
+
+            }
+
+
+            if(
+                obj.classification==="AIRCRAFT"
+            ){
+
+                color="#8caaff";
+
+                size=15;
+
+            }
+
+
+            if(
+                obj.classification==="OTHER"
+            ){
+
+                color="#b98cff";
+
+            }
+
+
+            if(
+                obj.classification==="UNKNOWN"
+            ){
+
+                color="#55bcd9";
+
+            }
+
+
+            if(
+                obj.threatScore>=75
+            ){
+
+                color="#ff3f3f";
+
+            }
+
+
+            if(obj.captured){
+
+                color="#61ef9a";
+
+            }
+
+
+            /* OBJECT */
+
+            ctx.fillStyle=color;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                obj.x,
+                obj.y,
+                size,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+
+            /* LABEL */
+
+            ctx.fillStyle="#d9f7ff";
+
+            ctx.font="10px Arial";
+
+            ctx.fillText(
+                "O-"+obj.id,
+                obj.x+size+4,
+                obj.y-5
+            );
+
+
+            /* JAMMER */
+
+            if(obj.jammed){
+
+                ctx.strokeStyle="#ff7043";
+
+                ctx.lineWidth=2;
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    obj.x,
+                    obj.y,
+                    22,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.stroke();
+
+            }
+
+
+            /* INSPECTED */
+
+            if(obj.inspected){
+
+                ctx.strokeStyle="#61ef9a";
+
+                ctx.lineWidth=2;
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    obj.x,
+                    obj.y,
+                    size+12,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.stroke();
+
+            }
+
+
+            /* CAPTURED */
+
+            if(obj.captured){
+
+                ctx.strokeStyle="#61ef9a";
+
+                ctx.lineWidth=3;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    obj.x-12,
+                    obj.y-12
+                );
+
+                ctx.lineTo(
+                    obj.x+12,
+                    obj.y+12
+                );
+
+                ctx.moveTo(
+                    obj.x+12,
+                    obj.y-12
+                );
+
+                ctx.lineTo(
+                    obj.x-12,
+                    obj.y+12
+                );
+
+                ctx.stroke();
+
+            }
+
+
+            /* SELECTED */
+
+            if(
+                selectedObject===obj
+            ){
+
+                ctx.strokeStyle="#ffffff";
+
+                ctx.lineWidth=3;
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    obj.x,
+                    obj.y,
+                    size+25,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.stroke();
+
+            }
+
+        }
+    );
+
+
+    /* COUNTER DRONE */
+
+    if(counterDrone){
+
+        ctx.fillStyle="#ffffff";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            counterDrone.x,
+            counterDrone.y,
+            9,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+
+        ctx.strokeStyle="#ffffff";
+
+        ctx.lineWidth=2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            counterDrone.x,
+            counterDrone.y,
+            18,
+            0,
+            Math.PI*2
+        );
+
+        ctx.stroke();
+
+
+        ctx.font="9px Arial";
+
+        ctx.fillStyle="#ffffff";
+
+        ctx.fillText(
+            "COUNTER",
+            counterDrone.x+13,
+            counterDrone.y
+        );
+
+    }
+
+
+    /* NET LAST */
+
+    drawNet();
+
+}
+
+
+/* RADAR CLICK */
+
+canvas.addEventListener(
+    "click",
+    function(event){
+
+        if(!radarOn){
+            return;
+        }
+
+
+        const rect=
+            canvas.getBoundingClientRect();
+
+
+        const scaleX=
+            canvas.width/
+            rect.width;
+
+
+        const scaleY=
+            canvas.height/
+            rect.height;
+
+
+        const mouseX=
+            (
+                event.clientX-
+                rect.left
+            )*
+            scaleX;
+
+
+        const mouseY=
+            (
+                event.clientY-
+                rect.top
+            )*
+            scaleY;
+
+
+        let closest=null;
+
+        let closestDistance=45;
+
+
+        objects.forEach(
+            obj=>{
+
+                const dx=
+                    mouseX-
+                    obj.x;
+
+                const dy=
+                    mouseY-
+                    obj.y;
+
+
+                const distance=
+                    Math.sqrt(
+                        dx*dx+
+                        dy*dy
+                    );
+
+
+                if(
+                    distance<
+                    closestDistance
+                ){
+
+                    closestDistance=
+                        distance;
+
+                    closest=obj;
+
+                }
+
+            }
+        );
+
+
+        if(closest){
+
+            selectObject(
+                closest
+            );
+
+        }
+
+    }
+);
+
+
+/* SCORE COLOR */
+
+function scoreClass(score){
+
+    if(score===null){
+        return "";
+    }
+
+
+    if(score>=75){
+        return "critical";
+    }
+
+
+    if(score>=45){
+        return "high";
+    }
+
+
+    if(score>=20){
+        return "medium";
+    }
+
+
+    return "low";
+
+}
+
+
+/* ENVIRONMENT */
+
+function applyEnvironment(){
+
+    environment.temperature=
+        document.getElementById(
+            "temperature"
+        ).value;
+
+
+    environment.wind=
+        document.getElementById(
+            "wind"
+        ).value;
+
+
+    environment.visibility=
+        document.getElementById(
+            "visibility"
+        ).value;
+
+
+    environment.snowdust=
+        document.getElementById(
+            "snowdust"
+        ).value;
+
+}
+
+
+/* RESET */
+
+function resetSystem(){
+
+    location.reload();
+
+}
+
+
+/* MAIN LOOP */
+
+function loop(){
+
+    updateObjects();
+
+    drawRadar();
+
+    requestAnimationFrame(
+        loop
+    );
+
+}
+
+
+/* START */
+
+updateTimer();
+
+loop();
+
+</script>
+
+</body>
+</html>
