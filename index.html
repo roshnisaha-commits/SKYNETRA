@@ -2,3146 +2,3412 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>AI Anti-Drone Simulation</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SKYNETRA — Multisensor Aerial Threat Monitoring</title>
 
 <style>
-*{
-    box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 html,body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#02080c;
-    color:#eafaff;
+ margin:0;
+ width:100%;
+ height:100%;
+ overflow:hidden;
+ background:#02080d;
+ color:#dffaff;
+ font-family:Arial,Helvetica,sans-serif
+}
+
+button,input{font:inherit}
+button{cursor:pointer}
+
+.app{
+ height:100vh;
+ display:grid;
+ grid-template-rows:56px minmax(0,1fr) 145px;
+ overflow:hidden
 }
 
 header{
-    height:58px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 14px;
-    background:#07171f;
-    border-bottom:1px solid #294650;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 18px;
+ background:linear-gradient(90deg,#06121a,#0a1c26,#06121a);
+ border-bottom:1px solid #183c4a
 }
 
-.title{
-    font-size:16px;
-    font-weight:bold;
+.logo{
+ display:flex;
+ align-items:center;
+ gap:11px
+}
+
+.logoMark{
+ width:32px;
+ height:32px;
+ border:2px solid #00eaff;
+ border-radius:50%;
+ position:relative
+}
+
+.logoMark:before,
+.logoMark:after{
+ content:"";
+ position:absolute;
+ background:#00eaff
+}
+
+.logoMark:before{
+ width:2px;
+ height:100%;
+ left:50%
+}
+
+.logoMark:after{
+ height:2px;
+ width:100%;
+ top:50%
+}
+
+.logoText{
+ font-size:18px;
+ font-weight:900;
+ letter-spacing:2px
 }
 
 .subtitle{
-    margin-top:3px;
-    font-size:9px;
-    color:#8faab3;
+ font-size:8px;
+ color:#668c99;
+ letter-spacing:1.4px
 }
 
-.headerRight{
-    display:flex;
-    gap:6px;
+.headerStatus{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ font-size:9px;
+ color:#7e9ca5
 }
 
-.badge{
-    padding:6px 9px;
-    border-radius:15px;
-    background:#102a34;
-    border:1px solid #294650;
-    font-size:8px;
+.statusDot{
+ width:8px;
+ height:8px;
+ border-radius:50%;
+ background:#46535a
 }
 
-.dashboard{
-    width:100%;
-    height:calc(100vh - 58px);
-    display:grid;
-    grid-template-columns:63% 37%;
+.statusDot.active{
+ background:#00ff9d;
+ box-shadow:0 0 10px #00ff9d
 }
 
-.radarArea{
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#010507;
-    border-right:1px solid #294650;
-}
-
-#radar{
-    width:min(76vh,820px);
-    height:min(76vh,820px);
-    max-width:95%;
-    max-height:95%;
-    cursor:crosshair;
-}
-
-.radarInfo{
-    position:absolute;
-    top:10px;
-    left:10px;
-    padding:8px;
-    background:#06161d;
-    border:1px solid #294650;
-    border-radius:6px;
-    font-size:8px;
-    line-height:1.6;
-}
-
-.radarInfo strong{
-    color:#6de6ff;
-    font-size:10px;
-}
-
-.legend{
-    position:absolute;
-    bottom:9px;
-    left:9px;
-    padding:7px 9px;
-    background:#06161d;
-    border:1px solid #294650;
-    border-radius:6px;
-    font-size:8px;
-    line-height:1.6;
-}
-
-.controlArea{
-    height:100%;
-    padding:7px;
-    display:grid;
-    grid-template-rows:auto auto minmax(125px,.8fr) minmax(220px,1.6fr);
-    gap:7px;
-    background:#050e13;
-    overflow:hidden;
+.main{
+ min-height:0;
+ display:grid;
+ grid-template-columns:minmax(0,1fr) 390px;
+ gap:8px;
+ padding:8px;
+ overflow:hidden
 }
 
 .panel{
-    min-height:0;
-    padding:8px;
-    background:#071921;
-    border:1px solid #294650;
-    border-radius:7px;
+ min-width:0;
+ min-height:0;
+ background:#07131b;
+ border:1px solid #173844;
+ border-radius:9px;
+ overflow:hidden
 }
 
 .panelTitle{
-    margin-bottom:7px;
-    font-size:9px;
-    font-weight:bold;
-    color:#bdeefa;
+ height:32px;
+ padding:0 10px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ border-bottom:1px solid #17333e;
+ color:#82aab5;
+ font-size:9px;
+ font-weight:800;
+ letter-spacing:1.2px
 }
 
-.controlGrid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:5px;
+.radarPanel{
+ position:relative
 }
 
-button{
-    padding:7px 4px;
-    border:0;
-    border-radius:5px;
-    background:#17647c;
-    color:white;
-    font-size:8px;
-    font-weight:bold;
-    cursor:pointer;
+#radarCanvas{
+ width:100%;
+ height:calc(100% - 32px);
+ display:block;
+ background:#02080c
 }
 
-button:hover{
-    filter:brightness(1.3);
+/* =========================================================
+   RADAR COLOUR LEGEND
+   ========================================================= */
+
+.radarLegend{
+ position:absolute;
+ left:50%;
+ bottom:9px;
+ transform:translateX(-50%);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-wrap:wrap;
+ gap:5px 9px;
+ padding:5px 9px;
+ border:1px solid rgba(39,91,103,.75);
+ border-radius:5px;
+ background:rgba(3,13,18,.88);
+ backdrop-filter:blur(3px);
+ pointer-events:none;
+ max-width:88%;
 }
 
-button:disabled{
-    opacity:.35;
-    cursor:not-allowed;
+.legendItem{
+ display:flex;
+ align-items:center;
+ gap:4px;
+ color:#8baab2;
+ font-size:6.5px;
+ font-weight:700;
+ white-space:nowrap;
 }
 
-.green{background:#19784f;}
-.orange{background:#96641c;}
-.red{background:#87363d;}
-.purple{background:#65489c;}
-.darkRed{background:#9b3434;}
-.blue{background:#285e9b;}
-
-.jammerBox{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    gap:2px;
+.legendDot{
+ width:7px;
+ height:7px;
+ border-radius:50%;
+ box-shadow:0 0 5px currentColor
 }
 
-.jammerLabel{
-    font-size:7px;
-    color:#9db7bf;
+.legendDot.yellow{background:#ffd43b;color:#ffd43b}
+.legendDot.red{background:#ff465d;color:#ff465d}
+.legendDot.green{background:#35f59a;color:#35f59a}
+.legendDot.orange{background:#ff9c38;color:#ff9c38}
+.legendDot.blue{background:#3aa8ff;color:#3aa8ff}
+.legendDot.purple{background:#bb6cff;color:#bb6cff}
+.legendDot.white{background:#b8c8d0;color:#b8c8d0}
+.legendDot.cyan{background:#00fff0;color:#00fff0}
+
+.radarOverlay{
+ position:absolute;
+ left:12px;
+ bottom:9px;
+ font-size:8px;
+ color:#66858e;
+ pointer-events:none
 }
 
-.timer{
-    font-size:14px;
-    font-weight:bold;
-    color:#ffd166;
+.radarOverlay b{
+ color:#b4e8ef
 }
 
-.environment{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:5px;
+.console{
+ display:flex;
+ flex-direction:column;
+ background:linear-gradient(180deg,#091923,#061118)
+}
+
+.consoleBody{
+ min-height:0;
+ flex:1;
+ padding:7px;
+ display:grid;
+ grid-template-rows:auto auto auto minmax(0,1fr);
+ gap:7px;
+ overflow:hidden
+}
+
+.section{
+ min-width:0;
+ border:1px solid #173945;
+ border-radius:7px;
+ padding:7px;
+ background:linear-gradient(145deg,#0a1d27,#061118)
+}
+
+.sectionTitle{
+ color:#7297a2;
+ font-size:8px;
+ font-weight:800;
+ letter-spacing:1.2px;
+ margin-bottom:6px
+}
+
+.controls{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:5px
+}
+
+.btn{
+ min-height:29px;
+ border:1px solid #28505d;
+ border-radius:5px;
+ background:#0a2029;
+ color:#dffaff;
+ padding:5px;
+ font-size:8px;
+ font-weight:800;
+ letter-spacing:.35px
+}
+
+.btn:hover{
+ border-color:#00d9ed;
+ background:#10303a
+}
+
+.btn.primary{
+ border-color:#008da7;
+ background:#082a34
+}
+
+.btn.green{
+ border-color:#009b69;
+ background:#082c23;
+ color:#a5ffda
+}
+
+.btn.red{
+ border-color:#9d3b49;
+ background:#2a1016;
+ color:#ffb8c0
+}
+
+.btn.inspect{
+ border-color:#7855c8;
+ background:#24183e;
+ color:#d8c7ff
+}
+
+.btn:disabled{
+ opacity:.35;
+ cursor:not-allowed
+}
+
+.envGrid{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:5px
 }
 
 .env{
-    padding:5px;
-    background:#041117;
-    border:1px solid #294650;
-    border-radius:5px;
+ border:1px solid #173944;
+ border-radius:5px;
+ padding:5px;
+ background:#06131a
 }
 
-.env label{
-    display:block;
-    margin-bottom:3px;
-    color:#9db7bf;
-    font-size:7px;
+.envHead{
+ display:flex;
+ justify-content:space-between;
+ color:#72939d;
+ font-size:7px;
+ margin-bottom:2px
 }
 
-select{
-    width:100%;
-    padding:4px;
-    border:1px solid #315762;
-    border-radius:4px;
-    background:#0b2730;
-    color:white;
-    font-size:7px;
+.envHead span:last-child{
+ color:#d8f7fc
 }
 
-.currentGrid{
-    height:calc(100% - 18px);
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:7px;
+input[type=range]{
+ width:100%;
+ height:12px;
+ accent-color:#00d8ed
 }
 
-.currentBox{
-    padding:7px;
-    background:#031016;
-    border:1px solid #203c46;
-    border-radius:5px;
-    overflow:auto;
-    font-size:8px;
-    line-height:1.5;
+.jammer{
+ display:grid;
+ grid-template-columns:1fr 70px 1fr;
+ align-items:center;
+ gap:6px
 }
 
-.currentBox h4{
-    margin:0 0 6px;
-    color:#6de6ff;
-    font-size:9px;
+.jammerState{
+ font-size:8px;
+ font-weight:800;
+ color:#718d96
 }
 
-.dataRow{
-    display:flex;
-    justify-content:space-between;
-    gap:5px;
-    padding:3px 0;
-    border-bottom:1px solid #153039;
+.timer{
+ text-align:center;
+ color:#ffd55d;
+ font-family:monospace;
+ font-weight:bold;
+ font-size:13px
 }
 
-.low{color:#61ef9a;}
-.medium{color:#ffd166;}
-.high{color:#ff8b75;}
-.critical{color:#ff3d3d;}
-
-.assessmentPanel{
-    display:flex;
-    flex-direction:column;
+.counterSection{
+ min-height:0;
+ display:flex;
+ flex-direction:column
 }
 
-.assessmentList{
-    flex:1;
-    min-height:0;
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:5px;
-    overflow-y:auto;
+.counterList{
+ min-height:0;
+ flex:1;
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:5px;
+ overflow:hidden
 }
 
-.assessment{
-    padding:7px;
-    min-height:75px;
-    background:#031016;
-    border:1px solid #284650;
-    border-radius:5px;
+.empty{
+ grid-column:1/-1;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ color:#506b73;
+ font-size:8px
 }
 
-.assessmentHeader{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:4px;
-    font-size:8px;
-    font-weight:bold;
+.counterCard{
+ border:1px solid #1b4652;
+ border-radius:6px;
+ padding:5px;
+ background:#06171f
 }
 
-.assessmentReason{
-    color:#9fb7bf;
-    font-size:7px;
-    line-height:1.35;
+.counterHead{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:4px
 }
 
-.bar{
-    height:5px;
-    margin-top:5px;
-    background:#162a31;
-    border-radius:5px;
-    overflow:hidden;
+.counterName{
+ color:#6ffff0;
+ font-size:9px;
+ font-weight:900
 }
 
-.barInner{
-    height:100%;
-    background:#e04b45;
+.counterState{
+ color:#9dd0d8;
+ background:#102930;
+ padding:2px 4px;
+ border-radius:3px;
+ font-size:6px
 }
 
-::-webkit-scrollbar{
-    width:5px;
+.counterMeta{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:2px;
+ color:#668892;
+ font-size:6px;
+ margin-bottom:4px
 }
 
-::-webkit-scrollbar-track{
-    background:#02080c;
+.counterMeta b{
+ color:#d9f8ff
 }
 
-::-webkit-scrollbar-thumb{
-    background:#315762;
-    border-radius:5px;
+.counterActions{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:4px
+}
+
+.counterActions .btn{
+ min-height:22px;
+ padding:3px;
+ font-size:6.5px
+}
+
+.bottom{
+ min-height:0;
+ display:grid;
+ grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);
+ gap:8px;
+ padding:0 8px 8px;
+ overflow:hidden
+}
+
+.tableWrap,
+.eventWrap{
+ height:calc(100% - 32px);
+ overflow:hidden
+}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:7px
+}
+
+th{
+ padding:4px 5px;
+ background:#091a22;
+ color:#6f949e;
+ text-align:left;
+ border-bottom:1px solid #183842
+}
+
+td{
+ padding:3px 5px;
+ border-bottom:1px solid #102832;
+ color:#b9d5dc
+}
+
+tr.selectedRow td{
+ background:#092832;
+ color:white
+}
+
+tr.capturedRow td{
+ background:#092519;
+ color:#b9ffd1
+}
+
+.event{
+ padding:4px 7px;
+ border-bottom:1px solid #102832;
+ font-size:7px;
+ color:#76959d
+}
+
+.event b{
+ color:#46d4e5
 }
 
 @media(max-width:900px){
 
-    body{
-        overflow:auto;
-    }
+ html,body{
+  overflow:auto
+ }
 
-    .dashboard{
-        height:auto;
-        grid-template-columns:1fr;
-    }
+ .app{
+  height:auto;
+  min-height:100vh;
+  grid-template-rows:56px auto auto
+ }
 
-    .radarArea{
-        height:65vh;
-    }
+ .main{
+  grid-template-columns:1fr;
+  overflow:visible
+ }
 
-    .controlArea{
-        height:auto;
-    }
+ .radarPanel{
+  height:65vh
+ }
+
+ .bottom{
+  grid-template-columns:1fr;
+  overflow:visible
+ }
+
+ .radarLegend{
+  bottom:8px;
+  max-width:95%
+ }
 }
 </style>
 </head>
 
 <body>
 
+<div class="app">
+
 <header>
 
-<div>
-    <div class="title">
-        AI HIGH-ALTITUDE ANTI-DRONE COMMAND SYSTEM
-    </div>
+ <div class="logo">
 
-    <div class="subtitle">
-        Radar • AI Identification • Environmental Simulation • Counter-Drone Inspection
-    </div>
-</div>
+  <div class="logoMark"></div>
 
-<div class="headerRight">
+  <div>
+   <div class="logoText">SKYNETRA</div>
+   <div class="subtitle">
+    MULTISENSOR AERIAL THREAT MONITORING
+   </div>
+  </div>
 
-    <div class="badge" id="radarBadge">
-        RADAR OFF
-    </div>
+ </div>
 
-    <div class="badge">
-        15 DRONES
-    </div>
-
-    <div class="badge">
-        5 OTHER OBJECTS
-    </div>
-
-    <div class="badge" id="aiBadge">
-        AI STANDBY
-    </div>
-
-</div>
+ <div class="headerStatus">
+  <span class="statusDot" id="systemDot"></span>
+  <span id="systemStatus">SYSTEM STANDBY</span>
+ </div>
 
 </header>
 
 
-<div class="dashboard">
+<div class="main">
 
-<!-- RADAR AREA -->
+<div class="panel radarPanel">
 
-<section class="radarArea">
+ <div class="panelTitle">
+  <span>TACTICAL RADAR</span>
+  <span id="radarState">OFFLINE</span>
+ </div>
 
-<canvas id="radar" width="800" height="800"></canvas>
+ <canvas id="radarCanvas"></canvas>
 
-<div class="radarInfo">
 
-<strong>LIVE RADAR</strong>
+ <!-- COLOUR CODE LEGEND -->
 
-<br>
+ <div class="radarLegend">
 
-20 airborne tracks
+  <div class="legendItem">
+   <span class="legendDot yellow"></span>
+   DRONE
+  </div>
 
-<br>
+  <div class="legendItem">
+   <span class="legendDot red"></span>
+   THREAT
+  </div>
 
-Click an object to select it
+  <div class="legendItem">
+   <span class="legendDot green"></span>
+   FRIENDLY
+  </div>
 
-<br>
+  <div class="legendItem">
+   <span class="legendDot orange"></span>
+   BIRD
+  </div>
 
-<span id="radarState">
-Radar offline
-</span>
+  <div class="legendItem">
+   <span class="legendDot blue"></span>
+   AIRCRAFT
+  </div>
+
+  <div class="legendItem">
+   <span class="legendDot purple"></span>
+   HELI/BALLOON
+  </div>
+
+  <div class="legendItem">
+   <span class="legendDot white"></span>
+   UNKNOWN
+  </div>
+
+  <div class="legendItem">
+   <span class="legendDot cyan"></span>
+   COUNTER
+  </div>
+
+ </div>
+
+
+ <div class="radarOverlay">
+  RANGE: <b>8 KM</b><br>
+  MODE: <b id="modeText">STANDBY</b>
+ </div>
+
+</div>
+
+
+<div class="panel console">
+
+ <div class="panelTitle">
+  <span>UNIFIED COMMAND DASHBOARD</span>
+  <span id="aiState">AI OFF</span>
+ </div>
+
+ <div class="consoleBody">
+
+  <div class="section">
+
+   <div class="sectionTitle">
+    SYSTEM CONTROL
+   </div>
+
+   <div class="controls">
+
+    <button class="btn primary" id="startRadarBtn">
+     START RADAR
+    </button>
+
+    <button class="btn primary" id="startAIBtn">
+     START AI
+    </button>
+
+    <button class="btn" id="resetBtn">
+     RESET
+    </button>
+
+    <button class="btn green" id="releaseCounterBtn">
+     RELEASE COUNTER-DRONE
+    </button>
+
+    <button class="btn inspect" id="inspectSelectedBtn">
+     INSPECT SELECTED
+    </button>
+
+   </div>
+
+  </div>
+
+
+  <div class="section">
+
+   <div class="sectionTitle">
+    ENVIRONMENTAL CONDITIONS
+   </div>
+
+   <div class="envGrid">
+
+    <div class="env">
+     <div class="envHead">
+      <span>WIND</span>
+      <span id="windValue">25 km/h</span>
+     </div>
+     <input id="wind" type="range" min="0" max="100" value="25">
+    </div>
+
+    <div class="env">
+     <div class="envHead">
+      <span>VISIBILITY</span>
+      <span id="visibilityValue">85%</span>
+     </div>
+     <input id="visibility" type="range" min="10" max="100" value="85">
+    </div>
+
+    <div class="env">
+     <div class="envHead">
+      <span>DUST</span>
+      <span id="dustValue">10%</span>
+     </div>
+     <input id="dust" type="range" min="0" max="100" value="10">
+    </div>
+
+    <div class="env">
+     <div class="envHead">
+      <span>SNOW</span>
+      <span id="snowValue">5%</span>
+     </div>
+     <input id="snow" type="range" min="0" max="100" value="5">
+    </div>
+
+    <div class="env">
+     <div class="envHead">
+      <span>PRESSURE</span>
+      <span id="pressureValue">85 kPa</span>
+     </div>
+     <input id="pressure" type="range" min="50" max="101" value="85">
+    </div>
+
+    <div class="env">
+     <div class="envHead">
+      <span>TEMP</span>
+      <span id="temperatureValue">-10°C</span>
+     </div>
+     <input id="temperature" type="range" min="-40" max="40" value="-10">
+    </div>
+
+   </div>
+
+  </div>
+
+
+  <div class="section">
+
+   <div class="sectionTitle">
+    ELECTRONIC COUNTERMEASURE
+   </div>
+
+   <div class="jammer">
+
+    <div class="jammerState" id="jammerState">
+     JAMMER OFF
+    </div>
+
+    <div class="timer" id="jammerTimer">
+     05:00
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+
+     <button class="btn primary" id="jammerOnBtn">
+      ACTIVATE
+     </button>
+
+     <button class="btn red" id="jammerOffBtn">
+      STOP
+     </button>
+
+    </div>
+
+   </div>
+
+  </div>
+
+
+  <div class="section counterSection">
+
+   <div class="sectionTitle">
+    COUNTER-DRONE FLEET
+   </div>
+
+   <div class="counterList" id="counterList">
+    <div class="empty">
+     NO COUNTER-DRONES DEPLOYED
+    </div>
+   </div>
+
+  </div>
+
+ </div>
+
+</div>
 
 </div>
 
 
-<div class="legend">
-
-🟡 Drone
-
-<br>
-
-🟢 Bird
-
-<br>
-
-🔵 Aircraft
-
-<br>
-
-🟣 Other
-
-<br>
-
-🔴 High threat
-
-<br>
-
-⭕ Jammer effect
-
-<br>
-
-✚ Counter-drone
-
-<br>
-
-◎ Selected
-
-<br>
-
-▦ Net
-
-<br>
-
-⬡ Counter-drone base
-
-</div>
-
-</section>
-
-
-<!-- CONTROL AREA -->
-
-<section class="controlArea">
-
-
-<!-- MISSION CONTROL -->
+<div class="bottom">
 
 <div class="panel">
 
-<div class="panelTitle">
-MISSION CONTROL
-</div>
+ <div class="panelTitle">
+  <span>TARGET TRACKING</span>
+  <span id="targetCount">0 TARGETS</span>
+ </div>
 
-<div class="controlGrid">
+ <div class="tableWrap">
 
-<button
-class="green"
-id="radarButton"
-onclick="toggleRadar()">
-START RADAR
-</button>
+  <table>
 
-<button
-class="blue"
-onclick="startAI()">
-START AI
-</button>
+   <thead>
 
-<button
-class="orange"
-onclick="toggleJammer()"
-id="jammerButton">
-START JAMMER
-</button>
+    <tr>
+     <th>ID</th>
+     <th>TYPE</th>
+     <th>THREAT</th>
+     <th>LAT</th>
+     <th>LON</th>
+     <th>DIST</th>
+     <th>STATUS</th>
+     <th>NET</th>
+    </tr>
 
-<button
-class="green"
-onclick="releaseCounterDrone()">
-RELEASE COUNTER-DRONE
-</button>
+   </thead>
 
-<button
-class="purple"
-id="inspectButton"
-onclick="inspectSelectedObject()"
-disabled>
-INSPECT SELECTED
-</button>
+   <tbody id="targetTable"></tbody>
 
-<button
-class="purple"
-onclick="callCounterDroneBack()">
-CALL COUNTER-DRONE BACK
-</button>
+  </table>
 
-<button
-class="darkRed"
-onclick="stopJammerEarly()">
-STOP JAMMER
-</button>
-
-<button
-class="purple"
-id="netButton"
-onclick="releaseNet()"
-disabled>
-RELEASE NET
-</button>
-
-<button
-class="red"
-onclick="resetSystem()">
-RESET
-</button>
-
-<div class="jammerBox">
-
-<div class="jammerLabel">
-SIMULATED JAMMER TIMER
-</div>
-
-<div
-class="timer"
-id="timer">
-05:00
-</div>
+ </div>
 
 </div>
 
-</div>
-</div>
-
-
-<!-- ENVIRONMENT -->
 
 <div class="panel">
 
-<div class="panelTitle">
-🌍 ENVIRONMENTAL CONDITIONS
-</div>
+ <div class="panelTitle">
+  <span>EVENT LOG</span>
+  <span>LIVE</span>
+ </div>
 
-<div class="environment">
-
-<div class="env">
-
-<label>
-Temperature
-</label>
-
-<select id="temperature">
-
-<option value="normal">
-Normal
-</option>
-
-<option value="cold" selected>
-Very Cold
-</option>
-
-<option value="extreme">
-Extreme Cold
-</option>
-
-</select>
-
-</div>
-
-
-<div class="env">
-
-<label>
-Wind
-</label>
-
-<select id="wind">
-
-<option value="low">
-Low
-</option>
-
-<option value="medium" selected>
-Medium
-</option>
-
-<option value="high">
-High
-</option>
-
-</select>
-
-</div>
-
-
-<div class="env">
-
-<label>
-Visibility
-</label>
-
-<select id="visibility">
-
-<option value="clear" selected>
-Clear
-</option>
-
-<option value="hazy">
-Hazy
-</option>
-
-<option value="poor">
-Poor
-</option>
-
-</select>
-
-</div>
-
-
-<div class="env">
-
-<label>
-Snow / Dust
-</label>
-
-<select id="snowdust">
-
-<option value="none">
-None
-</option>
-
-<option value="moderate" selected>
-Moderate
-</option>
-
-<option value="severe">
-Severe
-</option>
-
-</select>
-
-</div>
-
-
-<button
-class="green"
-onclick="applyEnvironment()">
-APPLY
-</button>
-
-</div>
-</div>
-
-
-<!-- CURRENT INFORMATION -->
-
-<div class="panel">
-
-<div class="panelTitle">
-🎯 CURRENT TRACK / COUNTER-DRONE
-</div>
-
-<div class="currentGrid">
-
-<div
-class="currentBox"
-id="selectedBox">
-
-<h4>
-SELECTED OBJECT
-</h4>
-
-No object selected.
-
-<br><br>
-
-Start the radar and click an object.
-
-</div>
-
-
-<div
-class="currentBox"
-id="counterBox">
-
-<h4>
-✚ COUNTER-DRONE
-</h4>
-
-Not deployed.
-
-<br><br>
-
-Press RELEASE COUNTER-DRONE.
+ <div class="eventWrap" id="eventLog"></div>
 
 </div>
 
 </div>
-</div>
 
-
-<!-- STORED ASSESSMENTS -->
-
-<div class="panel assessmentPanel">
-
-<div class="panelTitle">
-
-📊 STORED THREAT ASSESSMENTS
-
-<span
-style="
-float:right;
-font-weight:normal;
-color:#7899a3;
-">
-
-Results remain stored
-
-</span>
-
-</div>
-
-<div
-class="assessmentList"
-id="assessmentList">
-
-<div
-class="assessment"
-id="emptyAssessment">
-
-Waiting for AI identification and counter-drone inspection...
-
-</div>
-
-</div>
-
-</div>
-
-</section>
 </div>
 
 
 <script>
 
-/* CANVAS */
+const canvas=document.getElementById("radarCanvas");
+const ctx=canvas.getContext("2d");
 
-const canvas =
-document.getElementById("radar");
+const startRadarBtn=document.getElementById("startRadarBtn");
+const startAIBtn=document.getElementById("startAIBtn");
+const resetBtn=document.getElementById("resetBtn");
+const releaseCounterBtn=document.getElementById("releaseCounterBtn");
+const inspectSelectedBtn=document.getElementById("inspectSelectedBtn");
+const jammerOnBtn=document.getElementById("jammerOnBtn");
+const jammerOffBtn=document.getElementById("jammerOffBtn");
 
-const ctx =
-canvas.getContext("2d");
+const targetTable=document.getElementById("targetTable");
+const counterList=document.getElementById("counterList");
+const eventLog=document.getElementById("eventLog");
 
-const W = 800;
-const H = 800;
+let W=0;
+let H=0;
 
-const CX = 400;
-const CY = 400;
-
-
-/* COUNTER-DRONE DEPLOYMENT AREA */
-
-const COUNTER_BASE = {
-
-    x:760,
-    y:400
-
-};
-
-
-/* SYSTEM STATE */
-
-let radarOn=false;
-
+let radarRunning=false;
 let aiRunning=false;
 
-let jammerOn=false;
+let sweepAngle=0;
+let lastTime=performance.now();
 
-let jammerTime=300;
+let objects=[];
+let selectedObjects=[];
+let counterDrones=[];
+let counterDroneSerial=0;
 
-let jammerInterval=null;
+let jammerActive=false;
+let jammerSeconds=300;
 
-let counterDrone=null;
-
-let selectedObject=null;
-
-let net=null;
-
-
-/* ENVIRONMENT */
+let lastUI=0;
+let aiTimer=0;
 
 const environment={
+ wind:25,
+ visibility:85,
+ dust:10,
+ snow:5,
+ pressure:85,
+ temperature:-10
+};
 
-    temperature:"cold",
 
-    wind:"medium",
+const TYPES={
 
-    visibility:"clear",
+ DRONE:{
+  count:4,
+  color:"#ffd43b",
+  score:68
+ },
 
-    snowdust:"moderate"
+ THREAT_DRONE:{
+  count:2,
+  color:"#ff465d",
+  score:92
+ },
+
+ FRIENDLY_DRONE:{
+  count:4,
+  color:"#35f59a",
+  score:18
+ },
+
+ BIRD:{
+  count:2,
+  color:"#ff9c38",
+  score:8
+ },
+
+ AIRCRAFT:{
+  count:2,
+  color:"#3aa8ff",
+  score:38
+ },
+
+ HELICOPTER:{
+  count:1,
+  color:"#bb6cff",
+  score:48
+ },
+
+ BALLOON:{
+  count:1,
+  color:"#bb6cff",
+  score:30
+ }
 
 };
 
 
-/* OBJECT TYPES */
-
-const types=[
-
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-    "DRONE",
-
-    "BIRD",
-    "BIRD",
-
-    "AIRCRAFT",
-    "AIRCRAFT",
-
-    "OTHER"
-
-];
+function rand(a,b){
+ return Math.random()*(b-a)+a;
+}
 
 
-/* AIRBORNE OBJECTS */
+function clamp(v,a,b){
+ return Math.max(a,Math.min(b,v));
+}
 
-const objects=[];
 
-for(let i=0;i<20;i++){
+function dist(x,y){
+ return Math.hypot(x,y);
+}
 
-    const angle=
-        Math.random()*
-        Math.PI*2;
 
-    const radius=
-        80+
-        Math.random()*270;
+function radarGeom(){
+
+ return{
+  cx:W*.46,
+  cy:H*.50,
+  radius:Math.min(W*.42,H*.43)
+ };
+
+}
+
+
+function resize(){
+
+ const r=canvas.getBoundingClientRect();
+
+ const dpr=window.devicePixelRatio||1;
+
+ W=Math.max(300,r.width);
+ H=Math.max(250,r.height);
+
+ canvas.width=W*dpr;
+ canvas.height=H*dpr;
+
+ ctx.setTransform(
+  dpr,0,0,dpr,0,0
+ );
+
+}
+
+window.addEventListener("resize",resize);
+
+resize();
+
+
+function worldToScreen(x,y){
+
+ const g=radarGeom();
+
+ return{
+  x:g.cx+x*g.radius,
+  y:g.cy+y*g.radius
+ };
+
+}
+
+
+/* =========================================================
+   CREATE CONTACTS
+   ========================================================= */
+
+function createObjects(){
+
+ objects=[];
+
+ let serial=1;
+
+ Object.entries(TYPES).forEach(
+  ([type,info])=>{
+
+   for(let i=0;i<info.count;i++){
+
+    const a=rand(0,Math.PI*2);
+    const r=rand(.15,.88);
 
     objects.push({
 
-        id:i+1,
+     id:"T-"+String(serial).padStart(2,"0"),
 
-        hiddenType:types[i],
+     type:type,
 
-        x:
-            CX+
-            Math.cos(angle)*
-            radius,
+     x:Math.cos(a)*r,
+     y:Math.sin(a)*r,
 
-        y:
-            CY+
-            Math.sin(angle)*
-            radius,
+     vx:Math.cos(
+      a+rand(0,Math.PI*2)
+     )*rand(.075,.14),
 
-        angle:angle,
+     vy:Math.sin(
+      a+rand(0,Math.PI*2)
+     )*rand(.075,.14),
 
-        radius:radius,
+     speed:rand(.075,.14),
 
-        speed:
-            .25+
-            Math.random()*.7,
+     phase:rand(0,Math.PI*2),
 
-        direction:
-            Math.random()>.5
-            ?1
-            :-1,
+     identified:false,
 
-        maneuverability:
-            Math.random()*100,
+     selected:false,
+     inspected:false,
+     captured:false,
+     netDeployed:false,
 
-        acceleration:
-            Math.random()*100,
-
-        stability:
-            Math.random()*100,
-
-        radarSignature:
-            Math.random()*100,
-
-        classification:"UNKNOWN",
-
-        confidence:0,
-
-        threatScore:null,
-
-        reason:
-            "Awaiting AI identification.",
-
-        inspected:false,
-
-        jammed:false,
-
-        captured:false,
-
-        electronic:
-            types[i]==="DRONE"
+     baseScore:info.score,
+     threatScore:info.score
 
     });
 
-}
+    serial++;
 
+   }
 
-/* RADAR */
-
-function toggleRadar(){
-
-    radarOn=!radarOn;
-
-    if(radarOn){
-
-        document.getElementById(
-            "radarButton"
-        ).innerText=
-        "STOP RADAR";
-
-        document.getElementById(
-            "radarBadge"
-        ).innerText=
-        "RADAR ONLINE";
-
-        document.getElementById(
-            "radarState"
-        ).innerText=
-        "Radar active";
-
-    }
-
-    else{
-
-        document.getElementById(
-            "radarButton"
-        ).innerText=
-        "START RADAR";
-
-        document.getElementById(
-            "radarBadge"
-        ).innerText=
-        "RADAR OFF";
-
-        document.getElementById(
-            "radarState"
-        ).innerText=
-        "Radar offline";
-
-    }
+  }
+ );
 
 }
 
 
-/* AI */
+/* =========================================================
+   OBJECT MOVEMENT
+   ========================================================= */
 
-function startAI(){
+function jammerAffected(o){
 
-    if(!radarOn){
-
-        alert(
-            "Please start the radar first."
-        );
-
-        return;
-
-    }
-
-
-    if(aiRunning){
-        return;
-    }
-
-
-    aiRunning=true;
-
-
-    document.getElementById(
-        "aiBadge"
-    ).innerText=
-    "AI ANALYZING";
-
-
-    objects.forEach(
-        (obj,index)=>{
-
-            setTimeout(
-                ()=>{
-
-                    identifyObject(obj);
-
-                },
-                index*180
-            );
-
-        }
-    );
-
-
-    setTimeout(
-        ()=>{
-
-            aiRunning=false;
-
-            document.getElementById(
-                "aiBadge"
-            ).innerText=
-            "AI COMPLETE";
-
-        },
-        objects.length*180+400
-    );
+ return(
+  o.type==="DRONE" ||
+  o.type==="THREAT_DRONE" ||
+  o.type==="FRIENDLY_DRONE"
+ );
 
 }
 
 
-/* AI IDENTIFICATION */
+function updateObjects(dt){
 
-function identifyObject(obj){
+ if(!radarRunning)return;
 
-    let confidence=96;
+ objects.forEach(o=>{
 
+  if(o.captured)return;
 
-    if(
-        environment.visibility==="hazy"
-    ){
+  let wind=
+   environment.wind/100*.025;
 
-        confidence-=8;
+  let pressure=
+   (101-environment.pressure)*.0003;
 
-    }
-
-
-    if(
-        environment.visibility==="poor"
-    ){
-
-        confidence-=18;
-
-    }
+  let temp=
+   Math.abs(environment.temperature+10)*.00003;
 
 
-    if(
-        environment.snowdust==="moderate"
-    ){
+  if(
+   jammerActive &&
+   jammerAffected(o)
+  ){
 
-        confidence-=5;
+   if(Math.hypot(o.x,o.y)<.98){
 
-    }
+    o.vx=0;
+    o.vy=0;
 
+    return;
+   }
 
-    if(
-        environment.snowdust==="severe"
-    ){
-
-        confidence-=15;
-
-    }
+  }
 
 
-    obj.classification=
-        obj.hiddenType;
+  o.vx+=wind*dt*.15;
+  o.vy+=pressure*dt*.08;
 
+  const s=1+temp;
 
-    obj.confidence=
-        Math.max(
-            55,
-            Math.round(confidence)
-        );
+  o.x+=o.vx*dt*s;
+  o.y+=o.vy*dt*s;
 
+  const d=Math.hypot(o.x,o.y);
 
-    calculateThreat(obj);
+  if(d>.91){
+
+   const nx=o.x/d;
+   const ny=o.y/d;
+
+   o.x=nx*.91;
+   o.y=ny*.91;
+
+   const dot=o.vx*nx+o.vy*ny;
+
+   o.vx-=2*dot*nx;
+   o.vy-=2*dot*ny;
+
+  }
+
+  o.phase+=dt;
+
+  const wobble=
+   Math.sin(o.phase*1.7)*.0008;
+
+  o.vx+=wobble*dt;
+
+  o.vy+=
+   Math.cos(o.phase*1.4)*
+   .0008*
+   dt;
+
+  const velocity=
+   Math.hypot(o.vx,o.vy);
+
+  if(velocity<.025){
+
+   const a=rand(0,Math.PI*2);
+
+   o.vx=Math.cos(a)*o.speed;
+   o.vy=Math.sin(a)*o.speed;
+
+  }
+
+  const threatWave=
+   Math.sin(
+    performance.now()/850+
+    o.phase
+   )*4;
+
+  o.threatScore=
+   clamp(
+    o.baseScore+threatWave,
+    0,
+    99
+   );
+
+ });
 
 }
 
 
-/* THREAT */
-
-function calculateThreat(obj){
-
-    let score=0;
-
-    let reasons=[];
-
-
-    if(
-        obj.classification==="DRONE"
-    ){
-
-        if(
-            obj.maneuverability>60
-        ){
-
-            score+=25;
-
-            reasons.push(
-                "high maneuverability"
-            );
-
-        }
-
-
-        if(
-            obj.acceleration>60
-        ){
-
-            score+=25;
-
-            reasons.push(
-                "unusual acceleration"
-            );
-
-        }
-
-
-        if(
-            obj.radarSignature>65
-        ){
-
-            score+=20;
-
-            reasons.push(
-                "strong radar signature"
-            );
-
-        }
-
-
-        if(
-            obj.stability<40
-        ){
-
-            score+=15;
-
-            reasons.push(
-                "irregular flight stability"
-            );
-
-        }
-
-
-        score+=
-            Math.random()*15;
-
-
-        obj.threatScore=
-            Math.min(
-                99,
-                Math.round(score)
-            );
-
-
-        obj.reason=
-            reasons.length
-            ?
-            reasons.join(", ")+"."
-            :
-            "Limited suspicious indicators detected.";
-
-    }
-
-
-    else if(
-        obj.classification==="AIRCRAFT"
-    ){
-
-        obj.threatScore=
-            Math.round(
-                3+
-                Math.random()*8
-            );
-
-        obj.reason=
-            "Large stable airborne signature with low simulated threat indicators.";
-
-    }
-
-
-    else if(
-        obj.classification==="BIRD"
-    ){
-
-        obj.threatScore=
-            Math.round(
-                1+
-                Math.random()*7
-            );
-
-        obj.reason=
-            "Flight characteristics are consistent with a bird.";
-
-    }
-
-
-    else{
-
-        obj.threatScore=
-            Math.round(
-                4+
-                Math.random()*10
-            );
-
-        obj.reason=
-            "No strong simulated threat indicators detected.";
-
-    }
-
-}
-
-
-/* SIMULATED JAMMER */
-
-function toggleJammer(){
-
-    if(!radarOn){
-
-        alert(
-            "Please start the radar first."
-        );
-
-        return;
-
-    }
-
-
-    if(jammerOn){
-
-        stopJammer();
-
-        return;
-
-    }
-
-
-    jammerOn=true;
-
-    jammerTime=300;
-
-
-    document.getElementById(
-        "jammerButton"
-    ).innerText=
-    "JAMMER ACTIVE";
-
-
-    jammerInterval=
-        setInterval(
-            ()=>{
-
-                /*
-                Accelerated visual timer:
-                2 seconds of simulated time
-                pass for each real second.
-                */
-
-                jammerTime-=2;
-
-
-                if(jammerTime<=0){
-
-                    jammerTime=0;
-
-                    stopJammer();
-
-                }
-
-
-                updateTimer();
-
-            },
-            1000
-        );
-
-}
-
-
-/* STOP JAMMER */
-
-function stopJammer(){
-
-    jammerOn=false;
-
-    clearInterval(
-        jammerInterval
-    );
-
-    jammerInterval=null;
-
-
-    objects.forEach(
-        obj=>{
-
-            obj.jammed=false;
-
-        }
-    );
-
-
-    document.getElementById(
-        "jammerButton"
-    ).innerText=
-    "START JAMMER";
-
-
-    updateTimer();
-
-}
-
-
-function stopJammerEarly(){
-
-    if(!jammerOn){
-        return;
-    }
-
-    stopJammer();
-
-}
-
-
-/* TIMER */
-
-function updateTimer(){
-
-    const minutes=
-        Math.floor(
-            jammerTime/60
-        );
-
-    const seconds=
-        jammerTime%60;
-
-
-    document.getElementById(
-        "timer"
-    ).innerText=
-
-        String(minutes)
-        .padStart(2,"0")
-
-        +
-
-        ":"+
-
-        String(seconds)
-        .padStart(2,"0");
-
-}
-
-
-/* COUNTER DRONE RELEASE */
-
-function releaseCounterDrone(){
-
-    if(!radarOn){
-
-        alert(
-            "Start the radar first."
-        );
-
-        return;
-
-    }
-
-
-    if(counterDrone){
-
-        alert(
-            "Counter-drone is already deployed."
-        );
-
-        return;
-
-    }
-
-
-    /*
-    Start at deployment base.
-    */
-
-    counterDrone={
-
-        x:COUNTER_BASE.x,
-
-        y:COUNTER_BASE.y,
-
-        angle:0,
-
-        target:null,
-
-        speed:3,
-
-        returning:false
-
-    };
-
-
-    updateCounterPanel();
-
-
-    if(selectedObject){
-
-        document.getElementById(
-            "inspectButton"
-        ).disabled=
-            selectedObject.inspected;
-
-    }
-
-}
-
-
-/* CLOSE INSPECTION */
-
-function inspectSelectedObject(){
-
-    if(!radarOn){
-
-        alert(
-            "Start the radar first."
-        );
-
-        return;
-
-    }
-
-
-    if(!counterDrone){
-
-        alert(
-            "Release the counter-drone first."
-        );
-
-        return;
-
-    }
-
-
-    if(!selectedObject){
-
-        alert(
-            "Select an object first."
-        );
-
-        return;
-
-    }
-
-
-    if(selectedObject.inspected){
-
-        alert(
-            "This object has already been inspected."
-        );
-
-        return;
-
-    }
-
-
-    counterDrone.target=
-        selectedObject;
-
-    counterDrone.returning=false;
-
-
-    document.getElementById(
-        "inspectButton"
-    ).disabled=true;
-
-
-    document.getElementById(
-        "netButton"
-    ).disabled=true;
-
-
-    updateCounterPanel();
-
-}
-
-
-/* CALL COUNTER DRONE BACK */
-
-function callCounterDroneBack(){
-
-    if(!counterDrone){
-
-        alert(
-            "Counter-drone is not deployed."
-        );
-
-        return;
-
-    }
-
-
-    /*
-    Cancel inspection.
-    */
-
-    counterDrone.target=null;
-
-
-    /*
-    Start return journey.
-    */
-
-    counterDrone.returning=true;
-
-
-    /*
-    Remove visible net.
-    */
-
-    net=null;
-
-
-    document.getElementById(
-        "netButton"
-    ).disabled=true;
-
-
-    document.getElementById(
-        "inspectButton"
-    ).disabled=
-        !selectedObject ||
-        selectedObject.inspected;
-
-
-    updateCounterPanel();
-
-}
-
-
-/* SELECT OBJECT */
-
-function selectObject(obj){
-
-    selectedObject=obj;
-
-
-    net=null;
-
-
-    document.getElementById(
-        "netButton"
-    ).disabled=true;
-
-
-    document.getElementById(
-        "inspectButton"
-    ).disabled=
-        !counterDrone ||
-        obj.inspected;
-
-
-    updateSelectedPanel();
-
-    updateCounterPanel();
-
-}
-
-
-/* SELECTED OBJECT PANEL */
-
-function updateSelectedPanel(){
-
-    const box=
-        document.getElementById(
-            "selectedBox"
-        );
-
-
-    if(!selectedObject){
-
-        box.innerHTML=`
-
-        <h4>SELECTED OBJECT</h4>
-
-        No object selected.
-
-        <br><br>
-
-        Click an object on the radar.
-
-        `;
-
-        return;
-
-    }
-
-
-    const o=
-        selectedObject;
-
-
-    box.innerHTML=`
-
-    <h4>
-    SELECTED OBJECT O-${o.id}
-    </h4>
-
-
-    <div class="dataRow">
-
-        <span>
-        Classification
-        </span>
-
-        <strong>
-        ${o.classification}
-        </strong>
-
-    </div>
-
-
-    <div class="dataRow">
-
-        <span>
-        AI Confidence
-        </span>
-
-        <strong>
-        ${o.confidence}%
-        </strong>
-
-    </div>
-
-
-    <div class="dataRow">
-
-        <span>
-        Threat Score
-        </span>
-
-        <strong
-        class="${scoreClass(o.threatScore)}">
-
-        ${
-            o.threatScore===null
-            ?
-            "WAITING"
-            :
-            o.threatScore+"/100"
-        }
-
-        </strong>
-
-    </div>
-
-
-    <br>
-
-    <strong>
-    AI Reason
-    </strong>
-
-    <br>
-
-    ${o.reason}
-
-
-    <br><br>
-
-    <strong>
-    Inspection
-    </strong>
-
-    <br>
-
-    ${
-        o.inspected
-        ?
-        "✓ INSPECTION COMPLETE"
-        :
-        counterDrone
-        ?
-        "READY FOR MANUAL INSPECTION"
-        :
-        "COUNTER-DRONE NOT DEPLOYED"
-    }
-
-    `;
-
-
-    if(
-        o.inspected &&
-        counterDrone &&
-        counterDrone.target===o
-    ){
-
-        document.getElementById(
-            "netButton"
-        ).disabled=false;
-
-    }
-
-}
-
-
-/* COUNTER DRONE PANEL */
-
-function updateCounterPanel(){
-
-    const box=
-        document.getElementById(
-            "counterBox"
-        );
-
-
-    if(!counterDrone){
-
-        box.innerHTML=`
-
-        <h4>
-        ✚ COUNTER-DRONE
-        </h4>
-
-        Not deployed.
-
-        <br><br>
-
-        Release the counter-drone.
-
-        `;
-
-        return;
-
-    }
-
-
-    if(counterDrone.returning){
-
-        box.innerHTML=`
-
-        <h4>
-        ✚ COUNTER-DRONE
-        </h4>
-
-        <strong>
-        RETURNING TO DEPLOYMENT AREA
-        </strong>
-
-        <br><br>
-
-        Flying outside the radar.
-
-        <br><br>
-
-        Destination:
-
-        <strong>
-        COUNTER BASE
-        </strong>
-
-        `;
-
-        return;
-
-    }
-
-
-    if(counterDrone.target){
-
-        const target=
-            counterDrone.target;
-
-
-        box.innerHTML=`
-
-        <h4>
-        ✚ COUNTER-DRONE
-        </h4>
-
-        <strong>
-        ${
-            target.inspected
-            ?
-            "INSPECTION COMPLETE"
-            :
-            "INSPECTING TARGET"
-        }
-        </strong>
-
-        <br><br>
-
-        Target:
-
-        <strong>
-        O-${target.id}
-        </strong>
-
-        <br><br>
-
-        ${
-            target.inspected
-            ?
-            "✓ Close inspection completed."
-            :
-            "Counter-drone approaching target..."
-        }
-
-        `;
-
-    }
-
-    else{
-
-        box.innerHTML=`
-
-        <h4>
-        ✚ COUNTER-DRONE
-        </h4>
-
-        <strong>
-        STANDBY
-        </strong>
-
-        <br><br>
-
-        Counter-drone is at deployment area.
-
-        <br><br>
-
-        Select an object and press INSPECT SELECTED.
-
-        `;
-
-    }
-
-}
-
-
-/* COMPLETE INSPECTION */
-
-function completeInspection(obj){
-
-    if(obj.inspected){
-        return;
-    }
-
-
-    obj.inspected=true;
-
-
-    if(
-        obj.classification==="DRONE"
-    ){
-
-        obj.threatScore=
-            Math.min(
-                99,
-                obj.threatScore+
-                Math.round(
-                    Math.random()*10
-                )
-            );
-
-
-        if(
-            obj.threatScore>=75
-        ){
-
-            obj.reason+=
-                " Close inspection found multiple suspicious indicators.";
-
-        }
-
-        else if(
-            obj.threatScore>=45
-        ){
-
-            obj.reason+=
-                " Close inspection found moderate suspicious indicators.";
-
-        }
-
-        else{
-
-            obj.reason+=
-                " Close inspection found limited suspicious indicators.";
-
-        }
-
-    }
-
-
-    saveAssessment(obj);
-
-
-    if(
-        selectedObject===obj
-    ){
-
-        document.getElementById(
-            "netButton"
-        ).disabled=false;
-
-    }
-
-
-    updateSelectedPanel();
-
-    updateCounterPanel();
-
-}
-
-
-/* STORE ASSESSMENT */
-
-function saveAssessment(obj){
-
-    const empty=
-        document.getElementById(
-            "emptyAssessment"
-        );
-
-
-    if(empty){
-        empty.remove();
-    }
-
-
-    const existing=
-        document.getElementById(
-            "assessment-"+obj.id
-        );
-
-
-    if(existing){
-        existing.remove();
-    }
-
-
-    const card=
-        document.createElement("div");
-
-
-    card.className=
-        "assessment";
-
-
-    card.id=
-        "assessment-"+obj.id;
-
-
-    card.innerHTML=`
-
-    <div class="assessmentHeader">
-
-        <span>
-        OBJECT O-${obj.id}
-        </span>
-
-        <span
-        class="${scoreClass(obj.threatScore)}">
-
-        ${obj.threatScore}/100
-
-        </span>
-
-    </div>
-
-
-    <strong>
-    ${obj.classification}
-    </strong>
-
-
-    <div class="assessmentReason">
-
-    ${obj.reason}
-
-    </div>
-
-
-    <div class="bar">
-
-        <div
-        class="barInner"
-        style="
-        width:${obj.threatScore}%;
-        ">
-        </div>
-
-    </div>
-
-
-    <div
-    style="
-    margin-top:4px;
-    font-size:7px;
-    color:#61ef9a;
-    ">
-
-    ✓ INSPECTED & STORED
-
-    </div>
-
-    `;
-
-
-    document
-        .getElementById(
-            "assessmentList"
-        )
-        .prepend(card);
-
-}
-
-
-/* NET */
-
-function releaseNet(){
-
-    if(!counterDrone){
-
-        alert(
-            "Release the counter-drone first."
-        );
-
-        return;
-
-    }
-
-
-    if(!selectedObject){
-
-        alert(
-            "Select an object first."
-        );
-
-        return;
-
-    }
-
-
-    if(!selectedObject.inspected){
-
-        alert(
-            "Inspect the selected object first."
-        );
-
-        return;
-
-    }
-
-
-    net={
-
-        active:true,
-
-        target:selectedObject,
-
-        progress:0,
-
-        captured:false
-
-    };
-
-
-    document.getElementById(
-        "netButton"
-    ).disabled=true;
-
-}
-
-
-/* NET UPDATE */
-
-function updateNet(){
-
-    if(
-        !net ||
-        !net.active ||
-        !net.target
-    ){
-
-        return;
-
-    }
-
-
-    if(net.progress<1){
-
-        net.progress+=.018;
-
-    }
-
-
-    if(net.progress>=1){
-
-        net.progress=1;
-
-        net.captured=true;
-
-        net.target.captured=true;
-
-    }
-
-}
-
-
-/* DRAW NET */
-
-function drawNet(){
-
-    if(
-        !net ||
-        !net.active ||
-        !net.target
-    ){
-
-        return;
-
-    }
-
-
-    const target=
-        net.target;
-
-
-    const expansion=
-        25+
-        net.progress*65;
-
-
-    ctx.strokeStyle=
-        net.captured
-        ?
-        "#61ef9a"
-        :
-        "#ffffff";
-
-
-    ctx.lineWidth=2;
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        target.x,
-        target.y,
-        expansion,
-        0,
-        Math.PI*2
-    );
-
-    ctx.stroke();
-
-
-    ctx.save();
-
-
-    ctx.translate(
-        target.x,
-        target.y
-    );
-
-
-    ctx.strokeStyle=
-        net.captured
-        ?
-        "#61ef9a"
-        :
-        "#d9f7ff";
-
-
-    ctx.lineWidth=1;
-
-
-    const grid=
-        Math.max(
-            12,
-            expansion/4
-        );
-
-
-    for(
-        let x=-expansion;
-        x<=expansion;
-        x+=grid
-    ){
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            -expansion
-        );
-
-        ctx.lineTo(
-            x,
-            expansion
-        );
-
-        ctx.stroke();
-
-    }
-
-
-    for(
-        let y=-expansion;
-        y<=expansion;
-        y+=grid
-    ){
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            -expansion,
-            y
-        );
-
-        ctx.lineTo(
-            expansion,
-            y
-        );
-
-        ctx.stroke();
-
-    }
-
-
-    ctx.restore();
-
-
-    ctx.fillStyle=
-        net.captured
-        ?
-        "#61ef9a"
-        :
-        "#ffffff";
-
-
-    ctx.font=
-        "bold 10px Arial";
-
-
-    ctx.fillText(
-
-        net.captured
-        ?
-        "NET CAPTURED"
-        :
-        "NET DEPLOYING",
-
-        target.x+
-        expansion+
-        7,
-
-        target.y
-
-    );
-
-}
-
-
-/* OBJECT MOVEMENT */
-
-function updateObjects(){
-
-    if(!radarOn){
-        return;
-    }
-
-
-    objects.forEach(
-        obj=>{
-
-            if(obj.captured){
-                return;
-            }
-
-
-            /*
-            Simulated electronic effect.
-            Aircraft and birds continue moving.
-            */
-
-            if(
-                jammerOn &&
-                obj.electronic
-            ){
-
-                obj.jammed=true;
-
-                return;
-
-            }
-
-
-            obj.jammed=false;
-
-
-            let windMultiplier=1;
-
-
-            if(
-                environment.wind==="medium"
-            ){
-
-                windMultiplier=1.15;
-
-            }
-
-
-            if(
-                environment.wind==="high"
-            ){
-
-                windMultiplier=1.35;
-
-            }
-
-
-            obj.angle+=
-
-                obj.direction*
-                obj.speed*
-                .004*
-                windMultiplier;
-
-
-            obj.radius+=
-
-                Math.sin(
-                    Date.now()/1500+
-                    obj.id
-                )*.04;
-
-
-            if(
-                obj.radius>350
-            ){
-
-                obj.direction=-1;
-
-            }
-
-
-            if(
-                obj.radius<80
-            ){
-
-                obj.direction=1;
-
-            }
-
-
-            obj.x=
-
-                CX+
-                Math.cos(
-                    obj.angle
-                )*
-                obj.radius;
-
-
-            obj.y=
-
-                CY+
-                Math.sin(
-                    obj.angle
-                )*
-                obj.radius;
-
-        }
-    );
-
-
-    /* COUNTER DRONE */
-
-    if(counterDrone){
-
-        /* RETURN TO BASE */
-
-        if(counterDrone.returning){
-
-            const dx=
-                COUNTER_BASE.x-
-                counterDrone.x;
-
-            const dy=
-                COUNTER_BASE.y-
-                counterDrone.y;
-
-            const distance=
-                Math.sqrt(
-                    dx*dx+
-                    dy*dy
-                );
-
-
-            if(distance>8){
-
-                counterDrone.x+=
-                    (dx/distance)*
-                    counterDrone.speed;
-
-                counterDrone.y+=
-                    (dy/distance)*
-                    counterDrone.speed;
-
-            }
-
-            else{
-
-                counterDrone.x=
-                    COUNTER_BASE.x;
-
-                counterDrone.y=
-                    COUNTER_BASE.y;
-
-                counterDrone.returning=false;
-
-                counterDrone.target=null;
-
-                updateCounterPanel();
-
-            }
-
-        }
-
-
-        /* INSPECTION */
-
-        else if(
-            counterDrone.target
-        ){
-
-            const target=
-                counterDrone.target;
-
-
-            if(target.captured){
-
-                counterDrone.x=
-                    target.x-50;
-
-                counterDrone.y=
-                    target.y-50;
-
-            }
-
-            else{
-
-                const dx=
-                    target.x-
-                    counterDrone.x;
-
-                const dy=
-                    target.y-
-                    counterDrone.y;
-
-                const distance=
-                    Math.sqrt(
-                        dx*dx+
-                        dy*dy
-                    );
-
-
-                if(distance>45){
-
-                    counterDrone.x+=
-                        (dx/distance)*
-                        counterDrone.speed;
-
-                    counterDrone.y+=
-                        (dy/distance)*
-                        counterDrone.speed;
-
-                }
-
-                else{
-
-                    counterDrone.angle+=.035;
-
-
-                    counterDrone.x=
-
-                        target.x+
-                        Math.cos(
-                            counterDrone.angle
-                        )*45;
-
-
-                    counterDrone.y=
-
-                        target.y+
-                        Math.sin(
-                            counterDrone.angle
-                        )*45;
-
-
-                    completeInspection(
-                        target
-                    );
-
-                }
-
-            }
-
-        }
-
-
-        /* STANDBY AT BASE */
-
-        else{
-
-            counterDrone.x=
-                COUNTER_BASE.x;
-
-            counterDrone.y=
-                COUNTER_BASE.y;
-
-        }
-
-    }
-
-
-    updateNet();
-
-}
-
-
-/* DRAW RADAR */
+/* =========================================================
+   RADAR
+   ========================================================= */
 
 function drawRadar(){
 
-    ctx.clearRect(
-        0,
-        0,
-        W,
-        H
-    );
+ ctx.clearRect(0,0,W,H);
 
+ const g=radarGeom();
 
-    /* BACKGROUND */
+ ctx.save();
 
-    ctx.fillStyle="#02070a";
+ ctx.fillStyle="#02080c";
 
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
+ ctx.fillRect(
+  0,
+  0,
+  W,
+  H
+ );
 
 
-    /* RADAR RINGS */
+ const grd=
+  ctx.createRadialGradient(
+   g.cx,
+   g.cy,
+   0,
+   g.cx,
+   g.cy,
+   g.radius
+  );
 
-    ctx.strokeStyle="#174754";
+ grd.addColorStop(
+  0,
+  "rgba(0,90,100,.14)"
+ );
 
-    ctx.lineWidth=1;
+ grd.addColorStop(
+  1,
+  "rgba(0,20,25,.02)"
+ );
 
+ ctx.fillStyle=grd;
 
-    for(
-        let r=70;
-        r<=350;
-        r+=55
-    ){
+ ctx.beginPath();
 
-        ctx.beginPath();
+ ctx.arc(
+  g.cx,
+  g.cy,
+  g.radius,
+  0,
+  Math.PI*2
+ );
 
-        ctx.arc(
-            CX,
-            CY,
-            r,
-            0,
-            Math.PI*2
-        );
+ ctx.fill();
 
-        ctx.stroke();
 
-    }
+ /*
+  RADAR RINGS ALWAYS VISIBLE
+ */
 
+ ctx.strokeStyle=
+  "rgba(0,210,225,.20)";
 
-    /* CROSSHAIR */
+ ctx.lineWidth=1;
 
-    ctx.beginPath();
+ for(let i=1;i<=4;i++){
 
-    ctx.moveTo(
-        CX-350,
-        CY
-    );
+  ctx.beginPath();
 
-    ctx.lineTo(
-        CX+350,
-        CY
-    );
+  ctx.arc(
+   g.cx,
+   g.cy,
+   g.radius*i/4,
+   0,
+   Math.PI*2
+  );
 
-    ctx.moveTo(
-        CX,
-        CY-350
-    );
+  ctx.stroke();
 
-    ctx.lineTo(
-        CX,
-        CY+350
-    );
+  ctx.fillStyle="#4f818b";
 
-    ctx.stroke();
+  ctx.font="8px Arial";
 
+  ctx.fillText(
+   (i*2)+" KM",
+   g.cx+5,
+   g.cy-g.radius*i/4-3
+  );
 
-    /* SWEEP */
+ }
 
-    if(radarOn){
 
-        const sweep=
-            Date.now()/1000;
+ /*
+  RADAR CROSSHAIR
+ */
 
-        const angle=
-            sweep%(Math.PI*2);
+ ctx.beginPath();
 
+ ctx.moveTo(
+  g.cx-g.radius,
+  g.cy
+ );
 
-        ctx.strokeStyle="#35d29a";
+ ctx.lineTo(
+  g.cx+g.radius,
+  g.cy
+ );
 
-        ctx.lineWidth=2;
+ ctx.moveTo(
+  g.cx,
+  g.cy-g.radius
+ );
 
+ ctx.lineTo(
+  g.cx,
+  g.cy+g.radius
+ );
 
-        ctx.beginPath();
+ ctx.strokeStyle=
+  "rgba(0,210,225,.12)";
 
-        ctx.moveTo(
-            CX,
-            CY
-        );
+ ctx.stroke();
 
-        ctx.lineTo(
 
-            CX+
-            Math.cos(angle)*
-            345,
+ /*
+  SWEEP ONLY AFTER START RADAR
+ */
 
-            CY+
-            Math.sin(angle)*
-            345
+ if(radarRunning){
 
-        );
+  ctx.save();
 
-        ctx.stroke();
+  ctx.translate(
+   g.cx,
+   g.cy
+  );
 
-    }
+  ctx.rotate(
+   sweepAngle
+  );
 
+  const sweep=
+   ctx.createLinearGradient(
+    0,
+    0,
+    g.radius,
+    0
+   );
 
-    /* COUNTER BASE */
+  sweep.addColorStop(
+   0,
+   "rgba(0,255,220,.32)"
+  );
 
-    ctx.fillStyle="#0a2028";
+  sweep.addColorStop(
+   1,
+   "rgba(0,255,220,0)"
+  );
 
-    ctx.fillRect(
-        COUNTER_BASE.x-25,
-        COUNTER_BASE.y-25,
-        50,
-        50
-    );
+  ctx.fillStyle=sweep;
 
+  ctx.beginPath();
 
-    ctx.strokeStyle="#4f9aaa";
+  ctx.moveTo(0,0);
 
-    ctx.lineWidth=2;
+  ctx.lineTo(
+   g.radius,
+   0
+  );
 
-    ctx.strokeRect(
-        COUNTER_BASE.x-25,
-        COUNTER_BASE.y-25,
-        50,
-        50
-    );
+  ctx.lineTo(
+   g.radius,
+   -7
+  );
 
+  ctx.closePath();
 
-    ctx.fillStyle="#8fd7e8";
+  ctx.fill();
 
-    ctx.font="9px Arial";
+  ctx.restore();
 
-    ctx.fillText(
-        "COUNTER BASE",
-        COUNTER_BASE.x-38,
-        COUNTER_BASE.y+40
-    );
+ }
 
 
-    /* OBJECTS */
+ /*
+  OUTER RADAR CIRCLE
+ */
 
-    objects.forEach(
-        obj=>{
+ ctx.strokeStyle="#1ca5ae";
 
-            let color="#55bcd9";
+ ctx.lineWidth=2;
 
-            let size=7;
+ ctx.beginPath();
 
+ ctx.arc(
+  g.cx,
+  g.cy,
+  g.radius,
+  0,
+  Math.PI*2
+ );
 
-            if(
-                obj.classification==="DRONE"
-            ){
+ ctx.stroke();
 
-                color="#ffd166";
 
-            }
+ /*
+  RADAR CENTER
+ */
 
+ ctx.fillStyle="#00eaff";
 
-            if(
-                obj.classification==="BIRD"
-            ){
+ ctx.beginPath();
 
-                color="#61ef9a";
+ ctx.arc(
+  g.cx,
+  g.cy,
+  3,
+  0,
+  Math.PI*2
+ );
 
-                size=6;
+ ctx.fill();
 
-            }
-
-
-            if(
-                obj.classification==="AIRCRAFT"
-            ){
-
-                color="#8caaff";
-
-                size=15;
-
-            }
-
-
-            if(
-                obj.classification==="OTHER"
-            ){
-
-                color="#b98cff";
-
-            }
-
-
-            if(
-                obj.classification==="UNKNOWN"
-            ){
-
-                color="#55bcd9";
-
-            }
-
-
-            if(
-                obj.threatScore>=75
-            ){
-
-                color="#ff3f3f";
-
-            }
-
-
-            if(obj.captured){
-
-                color="#61ef9a";
-
-            }
-
-
-            /* OBJECT */
-
-            ctx.fillStyle=color;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                obj.x,
-                obj.y,
-                size,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
-
-
-            /* LABEL */
-
-            ctx.fillStyle="#d9f7ff";
-
-            ctx.font="10px Arial";
-
-            ctx.fillText(
-                "O-"+obj.id,
-                obj.x+size+4,
-                obj.y-5
-            );
-
-
-            /* JAMMER */
-
-            if(obj.jammed){
-
-                ctx.strokeStyle="#ff7043";
-
-                ctx.lineWidth=2;
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    obj.x,
-                    obj.y,
-                    22,
-                    0,
-                    Math.PI*2
-                );
-
-                ctx.stroke();
-
-            }
-
-
-            /* INSPECTED */
-
-            if(obj.inspected){
-
-                ctx.strokeStyle="#61ef9a";
-
-                ctx.lineWidth=2;
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    obj.x,
-                    obj.y,
-                    size+12,
-                    0,
-                    Math.PI*2
-                );
-
-                ctx.stroke();
-
-            }
-
-
-            /* CAPTURED */
-
-            if(obj.captured){
-
-                ctx.strokeStyle="#61ef9a";
-
-                ctx.lineWidth=3;
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    obj.x-12,
-                    obj.y-12
-                );
-
-                ctx.lineTo(
-                    obj.x+12,
-                    obj.y+12
-                );
-
-                ctx.moveTo(
-                    obj.x+12,
-                    obj.y-12
-                );
-
-                ctx.lineTo(
-                    obj.x-12,
-                    obj.y+12
-                );
-
-                ctx.stroke();
-
-            }
-
-
-            /* SELECTED */
-
-            if(
-                selectedObject===obj
-            ){
-
-                ctx.strokeStyle="#ffffff";
-
-                ctx.lineWidth=3;
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    obj.x,
-                    obj.y,
-                    size+25,
-                    0,
-                    Math.PI*2
-                );
-
-                ctx.stroke();
-
-            }
-
-        }
-    );
-
-
-    /* COUNTER DRONE */
-
-    if(counterDrone){
-
-        ctx.fillStyle="#ffffff";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            counterDrone.x,
-            counterDrone.y,
-            9,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
-
-
-        ctx.strokeStyle="#ffffff";
-
-        ctx.lineWidth=2;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            counterDrone.x,
-            counterDrone.y,
-            18,
-            0,
-            Math.PI*2
-        );
-
-        ctx.stroke();
-
-
-        ctx.font="9px Arial";
-
-        ctx.fillStyle="#ffffff";
-
-        ctx.fillText(
-            "COUNTER",
-            counterDrone.x+13,
-            counterDrone.y
-        );
-
-    }
-
-
-    /* NET LAST */
-
-    drawNet();
+ ctx.restore();
 
 }
 
 
-/* RADAR CLICK */
+/* =========================================================
+   ENVIRONMENT
+   ========================================================= */
+
+function drawEnvironment(){
+
+ if(!radarRunning)return;
+
+ const g=radarGeom();
+
+ ctx.save();
+
+ if(environment.visibility<100){
+
+  const alpha=
+   (100-environment.visibility)/220;
+
+  ctx.fillStyle=
+   `rgba(180,205,210,${alpha})`;
+
+  ctx.beginPath();
+
+  ctx.arc(
+   g.cx,
+   g.cy,
+   g.radius,
+   0,
+   Math.PI*2
+  );
+
+  ctx.fill();
+
+ }
+
+
+ for(
+  let i=0;
+  i<environment.dust/5;
+  i++
+ ){
+
+  const a=
+   (i*2.7+
+   performance.now()/7000)%
+   (Math.PI*2);
+
+  const r=
+   ((i*37)%100)/100*
+   g.radius;
+
+  ctx.fillStyle=
+   "rgba(190,160,100,.18)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+   g.cx+
+   Math.cos(a)*r,
+   g.cy+
+   Math.sin(a)*r,
+   1.2,
+   0,
+   Math.PI*2
+  );
+
+  ctx.fill();
+
+ }
+
+
+ for(
+  let i=0;
+  i<environment.snow/4;
+  i++
+ ){
+
+  const x=
+   (i*83+
+   performance.now()/40)%W;
+
+  const y=
+   (i*47+
+   performance.now()/55)%H;
+
+  ctx.fillStyle=
+   "rgba(220,245,255,.45)";
+
+  ctx.fillRect(
+   x,
+   y,
+   1.5,
+   1.5
+  );
+
+ }
+
+
+ if(environment.wind>10){
+
+  ctx.strokeStyle=
+   "rgba(100,220,240,.12)";
+
+  ctx.lineWidth=1;
+
+  for(let i=0;i<7;i++){
+
+   const x=
+    (i*97+
+    performance.now()/12)%W;
+
+   const y=
+    (i*53)%H;
+
+   ctx.beginPath();
+
+   ctx.moveTo(x,y);
+
+   ctx.lineTo(
+    x+environment.wind/8,
+    y
+   );
+
+   ctx.stroke();
+
+  }
+
+ }
+
+ ctx.restore();
+
+}
+
+
+/* =========================================================
+   OBJECT DRAWING
+   ========================================================= */
+
+function drawObject(o){
+
+ if(!radarRunning)return;
+
+ const p=
+  worldToScreen(
+   o.x,
+   o.y
+  );
+
+ const selected=o.selected;
+
+ ctx.save();
+
+
+ /*
+  UNKNOWN CONTACT
+ */
+
+ if(!o.identified){
+
+  ctx.strokeStyle="#b8c8d0";
+
+  ctx.fillStyle=
+   "rgba(184,200,208,.15)";
+
+  ctx.lineWidth=1.8;
+
+  ctx.shadowColor="#b8c8d0";
+
+  ctx.shadowBlur=
+   selected?12:4;
+
+  ctx.beginPath();
+
+  ctx.arc(
+   p.x,
+   p.y,
+   7,
+   0,
+   Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.stroke();
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+   p.x-11,
+   p.y
+  );
+
+  ctx.lineTo(
+   p.x+11,
+   p.y
+  );
+
+  ctx.moveTo(
+   p.x,
+   p.y-11
+  );
+
+  ctx.lineTo(
+   p.x,
+   p.y+11
+  );
+
+  ctx.stroke();
+
+ }
+
+
+ /*
+  CLASSIFIED CONTACT
+ */
+
+ else{
+
+  const color=
+   TYPES[o.type].color;
+
+  ctx.strokeStyle=color;
+  ctx.fillStyle=color;
+
+  ctx.lineWidth=1.8;
+
+  ctx.shadowColor=color;
+
+  ctx.shadowBlur=
+   selected?14:5;
+
+
+  if(
+   o.type==="DRONE" ||
+   o.type==="THREAT_DRONE" ||
+   o.type==="FRIENDLY_DRONE"
+  ){
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x,
+    p.y-8
+   );
+
+   ctx.lineTo(
+    p.x+10,
+    p.y
+   );
+
+   ctx.lineTo(
+    p.x,
+    p.y+8
+   );
+
+   ctx.lineTo(
+    p.x-10,
+    p.y
+   );
+
+   ctx.closePath();
+
+   ctx.stroke();
+
+   ctx.beginPath();
+
+   ctx.arc(
+    p.x,
+    p.y,
+    2.5,
+    0,
+    Math.PI*2
+   );
+
+   ctx.fill();
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x-14,
+    p.y-5
+   );
+
+   ctx.lineTo(
+    p.x-7,
+    p.y-5
+   );
+
+   ctx.moveTo(
+    p.x+7,
+    p.y-5
+   );
+
+   ctx.lineTo(
+    p.x+14,
+    p.y-5
+   );
+
+   ctx.stroke();
+
+  }
+
+
+  else if(o.type==="BIRD"){
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x-10,
+    p.y+2
+   );
+
+   ctx.quadraticCurveTo(
+    p.x-4,
+    p.y-8,
+    p.x,
+    p.y
+   );
+
+   ctx.quadraticCurveTo(
+    p.x+4,
+    p.y-8,
+    p.x+10,
+    p.y+2
+   );
+
+   ctx.stroke();
+
+  }
+
+
+  else if(o.type==="AIRCRAFT"){
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x+12,
+    p.y
+   );
+
+   ctx.lineTo(
+    p.x-8,
+    p.y-4
+   );
+
+   ctx.lineTo(
+    p.x-3,
+    p.y
+   );
+
+   ctx.lineTo(
+    p.x-8,
+    p.y+4
+   );
+
+   ctx.closePath();
+
+   ctx.fill();
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x,
+    p.y
+   );
+
+   ctx.lineTo(
+    p.x-4,
+    p.y-9
+   );
+
+   ctx.moveTo(
+    p.x,
+    p.y
+   );
+
+   ctx.lineTo(
+    p.x-4,
+    p.y+9
+   );
+
+   ctx.stroke();
+
+  }
+
+
+  else if(o.type==="HELICOPTER"){
+
+   ctx.beginPath();
+
+   ctx.arc(
+    p.x,
+    p.y+2,
+    5,
+    0,
+    Math.PI*2
+   );
+
+   ctx.stroke();
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x-13,
+    p.y-6
+   );
+
+   ctx.lineTo(
+    p.x+13,
+    p.y-6
+   );
+
+   ctx.moveTo(
+    p.x,
+    p.y-6
+   );
+
+   ctx.lineTo(
+    p.x,
+    p.y+7
+   );
+
+   ctx.moveTo(
+    p.x+5,
+    p.y+7
+   );
+
+   ctx.lineTo(
+    p.x+12,
+    p.y+10
+   );
+
+   ctx.stroke();
+
+  }
+
+
+  else if(o.type==="BALLOON"){
+
+   ctx.beginPath();
+
+   ctx.ellipse(
+    p.x,
+    p.y-3,
+    7,
+    9,
+    0,
+    0,
+    Math.PI*2
+   );
+
+   ctx.stroke();
+
+   ctx.beginPath();
+
+   ctx.moveTo(
+    p.x,
+    p.y+6
+   );
+
+   ctx.lineTo(
+    p.x,
+    p.y+13
+   );
+
+   ctx.stroke();
+
+  }
+
+ }
+
+
+ ctx.shadowBlur=0;
+
+ ctx.font="bold 8px Arial";
+
+ ctx.textAlign="left";
+
+ ctx.fillStyle=
+  o.identified
+   ?TYPES[o.type].color
+   :"#b8c8d0";
+
+ ctx.fillText(
+  o.id,
+  p.x+12,
+  p.y+3
+ );
+
+
+ if(selected){
+
+  ctx.strokeStyle="#ffffff";
+
+  ctx.lineWidth=1;
+
+  ctx.beginPath();
+
+  ctx.arc(
+   p.x,
+   p.y,
+   15,
+   0,
+   Math.PI*2
+  );
+
+  ctx.stroke();
+
+ }
+
+
+ if(o.captured)
+  drawNet(o.x,o.y);
+
+
+ ctx.restore();
+
+}
+
+
+/* =========================================================
+   NET
+   ========================================================= */
+
+function drawNet(x,y){
+
+ const p=
+  worldToScreen(x,y);
+
+ const s=18;
+
+ ctx.save();
+
+ ctx.strokeStyle="#39ff9b";
+
+ ctx.fillStyle=
+  "rgba(40,255,150,.12)";
+
+ ctx.lineWidth=2;
+
+ ctx.shadowColor="#39ff9b";
+
+ ctx.shadowBlur=10;
+
+ ctx.fillRect(
+  p.x-s,
+  p.y-s,
+  s*2,
+  s*2
+ );
+
+ ctx.strokeRect(
+  p.x-s,
+  p.y-s,
+  s*2,
+  s*2
+ );
+
+ ctx.lineWidth=1;
+
+ for(
+  let i=-s;
+  i<=s;
+  i+=6
+ ){
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+   p.x-s,
+   p.y+i
+  );
+
+  ctx.lineTo(
+   p.x+s,
+   p.y+i
+  );
+
+  ctx.stroke();
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+   p.x+i,
+   p.y-s
+  );
+
+  ctx.lineTo(
+   p.x+i,
+   p.y+s
+  );
+
+  ctx.stroke();
+
+ }
+
+ ctx.fillStyle="#9affc8";
+
+ ctx.font="bold 8px Arial";
+
+ ctx.textAlign="center";
+
+ ctx.fillText(
+  "NET CAPTURED",
+  p.x,
+  p.y-s-5
+ );
+
+ ctx.restore();
+
+}
+
+
+/* =========================================================
+   COUNTER DRONE DRAW
+   ========================================================= */
+
+function drawCounterDrone(d){
+
+ if(d.state==="STANDBY")
+  return;
+
+ const p=
+  worldToScreen(
+   d.x,
+   d.y
+  );
+
+ ctx.save();
+
+ ctx.strokeStyle="#00fff0";
+
+ ctx.fillStyle="#00fff0";
+
+ ctx.lineWidth=2;
+
+ ctx.shadowColor="#00fff0";
+
+ ctx.shadowBlur=8;
+
+ ctx.beginPath();
+
+ ctx.moveTo(
+  p.x,
+  p.y-8
+ );
+
+ ctx.lineTo(
+  p.x+8,
+  p.y
+ );
+
+ ctx.lineTo(
+  p.x,
+  p.y+8
+ );
+
+ ctx.lineTo(
+  p.x-8,
+  p.y
+ );
+
+ ctx.closePath();
+
+ ctx.stroke();
+
+ ctx.beginPath();
+
+ ctx.arc(
+  p.x,
+  p.y,
+  2,
+  0,
+  Math.PI*2
+ );
+
+ ctx.fill();
+
+ ctx.shadowBlur=0;
+
+ ctx.font="bold 8px Arial";
+
+ ctx.fillStyle="#bffff8";
+
+ ctx.textAlign="left";
+
+ ctx.fillText(
+  d.id,
+  p.x+10,
+  p.y+3
+ );
+
+ ctx.restore();
+
+}
+
+
+/* =========================================================
+   AI IDENTIFICATION
+   ========================================================= */
+
+function startAI(){
+
+ if(!radarRunning){
+
+  logEvent(
+   "START RADAR BEFORE STARTING AI"
+  );
+
+  return;
+ }
+
+ if(aiRunning)return;
+
+ aiRunning=true;
+ aiTimer=0;
+
+ document.getElementById(
+  "aiState"
+ ).textContent=
+  "AI ONLINE";
+
+ document.getElementById(
+  "modeText"
+ ).textContent=
+  "AI IDENTIFICATION";
+
+ logEvent(
+  "AI THREAT IDENTIFICATION STARTED — UNKNOWN CONTACTS BEING CLASSIFIED"
+ );
+
+}
+
+
+function updateAI(dt){
+
+ if(!aiRunning)return;
+
+ aiTimer+=dt;
+
+ if(aiTimer>=.55){
+
+  aiTimer=0;
+
+  const next=
+   objects.find(
+    o=>!o.identified
+   );
+
+  if(next){
+
+   next.identified=true;
+
+   logEvent(
+    next.id+
+    " IDENTIFIED AS "+
+    next.type+
+    " — SHAPE/COLOR UPDATED"
+   );
+
+  }
+
+  else{
+
+   aiRunning=false;
+
+   document.getElementById(
+    "aiState"
+   ).textContent=
+    "AI IDENTIFIED";
+
+   document.getElementById(
+    "modeText"
+   ).textContent=
+    "TRACKING / CLASSIFIED";
+
+   logEvent(
+    "AI IDENTIFICATION COMPLETE — ALL CONTACTS CLASSIFIED"
+   );
+
+  }
+
+ }
+
+}
+
+
+/* =========================================================
+   JAMMER
+   ========================================================= */
+
+function activateJammer(){
+
+ if(!radarRunning){
+
+  logEvent(
+   "START RADAR BEFORE JAMMER"
+  );
+
+  return;
+ }
+
+ jammerActive=true;
+ jammerSeconds=300;
+
+ updateJammerUI();
+
+ logEvent(
+  "JAMMER ACTIVATED — 05:00"
+ );
+
+}
+
+
+function stopJammer(){
+
+ jammerActive=false;
+
+ updateJammerUI();
+
+ logEvent(
+  "JAMMER STOPPED"
+ );
+
+}
+
+
+function updateJammer(dt){
+
+ if(!jammerActive)return;
+
+ jammerSeconds-=dt;
+
+ if(jammerSeconds<=0){
+
+  jammerSeconds=0;
+  jammerActive=false;
+
+  logEvent(
+   "JAMMER TIMER EXPIRED — AUTO OFF"
+  );
+
+ }
+
+ updateJammerUI();
+
+}
+
+
+function updateJammerUI(){
+
+ const m=
+  Math.floor(
+   jammerSeconds/60
+  );
+
+ const s=
+  Math.floor(
+   jammerSeconds%60
+  );
+
+ document.getElementById(
+  "jammerTimer"
+ ).textContent=
+  String(m).padStart(2,"0")+
+  ":"+
+  String(s).padStart(2,"0");
+
+ const state=
+  document.getElementById(
+   "jammerState"
+  );
+
+ state.textContent=
+  jammerActive
+   ?"JAMMER ACTIVE"
+   :"JAMMER OFF";
+
+ state.style.color=
+  jammerActive
+   ?" #ffd45a"
+   :"#718b94";
+
+}
+
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
 
 canvas.addEventListener(
-    "click",
-    function(event){
+ "click",
+ e=>{
 
-        if(!radarOn){
-            return;
-        }
+  if(!radarRunning)return;
 
+  const r=
+   canvas.getBoundingClientRect();
 
-        const rect=
-            canvas.getBoundingClientRect();
+  const px=
+   e.clientX-r.left;
 
+  const py=
+   e.clientY-r.top;
 
-        const scaleX=
-            canvas.width/
-            rect.width;
+  let hit=null;
+  let best=18;
 
+  objects.forEach(o=>{
 
-        const scaleY=
-            canvas.height/
-            rect.height;
+   const p=
+    worldToScreen(
+     o.x,
+     o.y
+    );
 
+   const d=
+    Math.hypot(
+     px-p.x,
+     py-p.y
+    );
 
-        const mouseX=
-            (
-                event.clientX-
-                rect.left
-            )*
-            scaleX;
+   if(d<best){
 
+    best=d;
+    hit=o;
 
-        const mouseY=
-            (
-                event.clientY-
-                rect.top
-            )*
-            scaleY;
+   }
 
+  });
 
-        let closest=null;
+  if(!hit)return;
 
-        let closestDistance=45;
+  hit.selected=
+   !hit.selected;
 
+  if(hit.selected){
 
-        objects.forEach(
-            obj=>{
+   if(
+    !selectedObjects.includes(
+     hit.id
+    )
+   ){
 
-                const dx=
-                    mouseX-
-                    obj.x;
+    selectedObjects.push(
+     hit.id
+    );
 
-                const dy=
-                    mouseY-
-                    obj.y;
+   }
 
+   logEvent(
+    hit.id+" SELECTED"
+   );
 
-                const distance=
-                    Math.sqrt(
-                        dx*dx+
-                        dy*dy
-                    );
+  }
 
+  else{
 
-                if(
-                    distance<
-                    closestDistance
-                ){
+   selectedObjects=
+    selectedObjects.filter(
+     id=>id!==hit.id
+    );
 
-                    closestDistance=
-                        distance;
+   logEvent(
+    hit.id+" DESELECTED"
+   );
 
-                    closest=obj;
+  }
 
-                }
+  updateTable();
 
-            }
-        );
-
-
-        if(closest){
-
-            selectObject(
-                closest
-            );
-
-        }
-
-    }
+ }
 );
 
 
-/* SCORE COLOR */
+/* =========================================================
+   RELEASE COUNTER DRONE
+   ========================================================= */
 
-function scoreClass(score){
+function releaseCounterDrone(){
 
-    if(score===null){
-        return "";
-    }
+ counterDroneSerial++;
 
+ const d={
 
-    if(score>=75){
-        return "critical";
-    }
+  id:
+   "CD-"+counterDroneSerial,
 
+  state:"STANDBY",
 
-    if(score>=45){
-        return "high";
-    }
+  x:-1.15,
+  y:1.15,
 
+  targetId:null,
 
-    if(score>=20){
-        return "medium";
-    }
+  camera:false,
 
+  netDeployed:false,
 
-    return "low";
+  threatScore:0,
 
-}
+  angle:0
 
+ };
 
-/* ENVIRONMENT */
+ counterDrones.push(d);
 
-function applyEnvironment(){
+ renderCounters();
 
-    environment.temperature=
-        document.getElementById(
-            "temperature"
-        ).value;
-
-
-    environment.wind=
-        document.getElementById(
-            "wind"
-        ).value;
-
-
-    environment.visibility=
-        document.getElementById(
-            "visibility"
-        ).value;
-
-
-    environment.snowdust=
-        document.getElementById(
-            "snowdust"
-        ).value;
+ logEvent(
+  d.id+
+  " RELEASED — STANDBY"
+ );
 
 }
 
 
-/* RESET */
+/* =========================================================
+   INSPECT SELECTED
+   ========================================================= */
+
+function inspectSelected(){
+
+ if(!radarRunning){
+
+  logEvent(
+   "START RADAR BEFORE INSPECTION"
+  );
+
+  return;
+ }
+
+ const targets=
+  objects.filter(
+   o=>
+    o.selected &&
+    !o.captured
+  );
+
+ if(!targets.length){
+
+  logEvent(
+   "NO TARGETS SELECTED"
+  );
+
+  return;
+ }
+
+ const available=
+  counterDrones.filter(
+   d=>
+    d.state==="STANDBY" &&
+    !d.targetId
+  );
+
+ if(!available.length){
+
+  logEvent(
+   "NO AVAILABLE COUNTER-DRONE"
+  );
+
+  return;
+ }
+
+ let index=0;
+
+ targets.forEach(
+  target=>{
+
+   if(index>=available.length)
+    return;
+
+   const already=
+    counterDrones.some(
+     d=>
+      d.targetId===
+       target.id &&
+      d.state!=="STANDBY" &&
+      d.state!=="RETURNING"
+    );
+
+   if(already)return;
+
+   const d=
+    available[index++];
+
+   d.targetId=
+    target.id;
+
+   d.state="FLYING";
+
+   d.camera=true;
+
+   d.threatScore=
+    target.threatScore;
+
+   target.inspected=true;
+
+   logEvent(
+    d.id+
+    " INSPECTING "+
+    target.id
+   );
+
+  }
+ );
+
+ renderCounters();
+ updateTable();
+
+}
+
+
+/* =========================================================
+   COUNTER DRONE MOVEMENT
+   ========================================================= */
+
+function updateCounters(dt){
+
+ if(!radarRunning)return;
+
+ [
+  ...counterDrones
+ ].forEach(d=>{
+
+  if(d.state==="STANDBY")
+   return;
+
+
+  /*
+   CALLBACK:
+   SINGLE CLICK -> RETURNING
+   */
+
+  if(d.state==="RETURNING"){
+
+   const bx=-1.15;
+   const by=1.15;
+
+   const dx=bx-d.x;
+   const dy=by-d.y;
+
+   const distance=
+    Math.hypot(
+     dx,
+     dy
+    );
+
+   if(distance<.025){
+
+    logEvent(
+     d.id+
+     " REACHED HIDDEN BASE"
+    );
+
+    counterDrones=
+     counterDrones.filter(
+      x=>x.id!==d.id
+     );
+
+    renderCounters();
+
+    return;
+
+   }
+
+   const speed=.30*dt;
+
+   d.x+=
+    dx/distance*
+    speed;
+
+   d.y+=
+    dy/distance*
+    speed;
+
+   return;
+
+  }
+
+
+  const target=
+   objects.find(
+    o=>o.id===d.targetId
+   );
+
+  if(!target)return;
+
+
+  if(d.state==="FLYING"){
+
+   const dx=
+    target.x-d.x;
+
+   const dy=
+    target.y-d.y;
+
+   const distance=
+    Math.hypot(
+     dx,
+     dy
+    );
+
+   if(distance<.08){
+
+    d.state="ORBITING";
+
+    d.angle=
+     Math.atan2(
+      d.y-target.y,
+      d.x-target.x
+     );
+
+    logEvent(
+     d.id+
+     " ARRIVED — ORBITING "+
+     target.id
+    );
+
+   }
+
+   else{
+
+    const speed=.30*dt;
+
+    d.x+=
+     dx/distance*
+     speed;
+
+    d.y+=
+     dy/distance*
+     speed;
+
+   }
+
+   d.threatScore=
+    target.threatScore;
+
+   return;
+
+  }
+
+
+  if(d.state==="ORBITING"){
+
+   d.angle+=.8*dt;
+
+   const radius=.075;
+
+   d.x=
+    target.x+
+    Math.cos(d.angle)*
+    radius;
+
+   d.y=
+    target.y+
+    Math.sin(d.angle)*
+    radius;
+
+   d.threatScore=
+    target.captured
+     ?100
+     :target.threatScore;
+
+  }
+
+ });
+
+}
+
+
+/* =========================================================
+   CALLBACK
+   ========================================================= */
+
+function callbackDrone(id){
+
+ const d=
+  counterDrones.find(
+   x=>x.id===id
+  );
+
+ if(!d)return;
+
+
+ /*
+  ONE CLICK:
+  immediately switches the drone into
+  physical return mode.
+ */
+
+ if(d.state==="STANDBY"){
+
+  logEvent(
+   d.id+
+   " ALREADY AT BASE"
+  );
+
+  return;
+
+ }
+
+
+ if(d.state==="RETURNING")
+  return;
+
+
+ d.state="RETURNING";
+
+ d.camera=false;
+
+ logEvent(
+  d.id+
+  " CALLBACK — RETURNING TO BASE"
+ );
+
+ renderCounters();
+
+}
+
+
+/* =========================================================
+   RELEASE NET
+   ========================================================= */
+
+function releaseNet(id){
+
+ const d=
+  counterDrones.find(
+   x=>x.id===id
+  );
+
+ if(!d)return;
+
+
+ /*
+  ONE CLICK ONLY.
+  No second confirmation.
+ */
+
+ if(
+  d.state!=="FLYING" &&
+  d.state!=="ORBITING"
+ ){
+
+  logEvent(
+   d.id+
+   " CANNOT RELEASE NET — DRONE NOT ON TARGET"
+  );
+
+  return;
+
+ }
+
+
+ const target=
+  objects.find(
+   o=>o.id===d.targetId
+  );
+
+ if(!target){
+
+  logEvent(
+   d.id+
+   " HAS NO ASSIGNED TARGET"
+  );
+
+  return;
+
+ }
+
+
+ /*
+  IMMEDIATE NET DEPLOYMENT
+ */
+
+ target.netDeployed=true;
+ target.captured=true;
+ target.inspected=true;
+
+ target.vx=0;
+ target.vy=0;
+
+ target.threatScore=100;
+
+
+ d.state="ORBITING";
+ d.netDeployed=true;
+ d.camera=true;
+ d.threatScore=100;
+
+
+ /*
+  Keep the counter-drone around
+  the captured target.
+ */
+
+ d.angle=
+  Math.atan2(
+   d.y-target.y,
+   d.x-target.x
+  );
+
+
+ if(!Number.isFinite(d.angle))
+  d.angle=0;
+
+
+ d.x=
+  target.x+
+  Math.cos(d.angle)*.075;
+
+ d.y=
+  target.y+
+  Math.sin(d.angle)*.075;
+
+
+ logEvent(
+  d.id+
+  " NET DEPLOYED — "+
+  target.id+
+  " CAPTURED IMMEDIATELY"
+ );
+
+ renderCounters();
+ updateTable();
+
+}
+
+
+/* =========================================================
+   COUNTER CARDS
+   ========================================================= */
+
+function renderCounters(){
+
+ if(!counterDrones.length){
+
+  counterList.innerHTML=
+   `<div class="empty">
+     NO COUNTER-DRONES DEPLOYED
+   </div>`;
+
+  return;
+
+ }
+
+ counterList.innerHTML="";
+
+ counterDrones.forEach(
+  d=>{
+
+   const target=
+    objects.find(
+     o=>o.id===d.targetId
+    );
+
+   const card=
+    document.createElement(
+     "div"
+    );
+
+   card.className=
+    "counterCard";
+
+   card.innerHTML=`
+
+    <div class="counterHead">
+
+     <span class="counterName">
+      ${d.id}
+     </span>
+
+     <span class="counterState">
+      ${d.state}
+     </span>
+
+    </div>
+
+
+    <div class="counterMeta">
+
+     <span>
+      TARGET:
+      <b>
+       ${target?target.id:"NONE"}
+      </b>
+     </span>
+
+     <span>
+      THREAT:
+      <b>
+       ${
+        target
+        ?Math.round(
+          target.captured
+           ?100
+           :target.threatScore
+         )
+        :0
+       }
+      </b>
+     </span>
+
+     <span>
+      CAMERA:
+      <b>
+       ${d.camera?"ON":"OFF"}
+      </b>
+     </span>
+
+     <span>
+      NET:
+      <b>
+       ${d.netDeployed
+        ?"DEPLOYED"
+        :"READY"}
+      </b>
+     </span>
+
+    </div>
+
+
+    <div class="counterActions">
+
+     <!-- ONE CLICK NET -->
+
+     <button
+      class="btn green"
+      data-action="net"
+      data-id="${d.id}"
+      ${
+       d.state==="FLYING"||
+       d.state==="ORBITING"
+       ?""
+       :"disabled"
+      }>
+      RELEASE NET
+     </button>
+
+
+     <!-- ONE CLICK CALLBACK -->
+
+     <button
+      class="btn red"
+      data-action="callback"
+      data-id="${d.id}"
+      ${
+       d.state==="RETURNING"
+       ?"disabled"
+       :""
+      }>
+      CALL BACK
+     </button>
+
+    </div>
+   `;
+
+   counterList.appendChild(card);
+
+  }
+ );
+
+}
+
+
+/*
+ IMPORTANT:
+ These buttons execute their action
+ directly from ONE click.
+ */
+
+counterList.addEventListener(
+ "click",
+ e=>{
+
+  const button=
+   e.target.closest("button");
+
+  if(!button)return;
+
+  const id=
+   button.dataset.id;
+
+  const action=
+   button.dataset.action;
+
+
+  if(action==="net"){
+
+   releaseNet(id);
+
+  }
+
+
+  if(action==="callback"){
+
+   callbackDrone(id);
+
+  }
+
+ }
+);
+
+
+/* =========================================================
+   TARGET TABLE
+   ========================================================= */
+
+function updateTable(){
+
+ const selected=
+  objects.filter(
+   o=>o.selected
+  );
+
+ document.getElementById(
+  "targetCount"
+ ).textContent=
+  selected.length+
+  " TARGET"+
+  (
+   selected.length===1
+   ?""
+   :"S"
+  );
+
+ targetTable.innerHTML="";
+
+ selected.forEach(o=>{
+
+  const assigned=
+   counterDrones.find(
+    d=>d.targetId===o.id
+   );
+
+  let status="SELECTED";
+
+  if(o.captured)
+   status="CAPTURED";
+
+  else if(assigned)
+   status=
+    assigned.state+
+    " "+
+    assigned.id;
+
+  const tr=
+   document.createElement("tr");
+
+  tr.className=
+   o.captured
+    ?"capturedRow"
+    :"selectedRow";
+
+  const distance=
+   clamp(
+    dist(o.x,o.y)*8,
+    0,
+    15
+   );
+
+  const lat=
+   25+
+   o.y*2.5;
+
+  const lon=
+   80+
+   o.x*2.5;
+
+  tr.innerHTML=`
+
+   <td>${o.id}</td>
+
+   <td>
+    ${
+     o.identified
+      ?o.type
+      :"UNKNOWN"
+    }
+   </td>
+
+   <td>
+    ${Math.round(
+      o.threatScore
+    )}
+   </td>
+
+   <td>
+    ${lat.toFixed(4)}
+   </td>
+
+   <td>
+    ${lon.toFixed(4)}
+   </td>
+
+   <td>
+    ${distance.toFixed(2)} km
+   </td>
+
+   <td>
+    ${status}
+   </td>
+
+   <td>
+    ${
+     o.netDeployed
+      ?"DEPLOYED"
+      :"—"
+    }
+   </td>
+
+  `;
+
+  targetTable.appendChild(tr);
+
+ });
+
+}
+
+
+/* =========================================================
+   ENVIRONMENT
+   ========================================================= */
+
+function updateEnvironmentUI(){
+
+ document.getElementById(
+  "windValue"
+ ).textContent=
+  environment.wind+
+  " km/h";
+
+ document.getElementById(
+  "visibilityValue"
+ ).textContent=
+  environment.visibility+
+  "%";
+
+ document.getElementById(
+  "dustValue"
+ ).textContent=
+  environment.dust+
+  "%";
+
+ document.getElementById(
+  "snowValue"
+ ).textContent=
+  environment.snow+
+  "%";
+
+ document.getElementById(
+  "pressureValue"
+ ).textContent=
+  environment.pressure+
+  " kPa";
+
+ document.getElementById(
+  "temperatureValue"
+ ).textContent=
+  environment.temperature+
+  "°C";
+
+}
+
+
+[
+ ["wind","wind"],
+ ["visibility","visibility"],
+ ["dust","dust"],
+ ["snow","snow"],
+ ["pressure","pressure"],
+ ["temperature","temperature"]
+].forEach(
+ ([id,key])=>{
+
+  document.getElementById(id)
+  .addEventListener(
+   "input",
+   e=>{
+
+    environment[key]=
+     Number(e.target.value);
+
+    updateEnvironmentUI();
+
+   }
+  );
+
+ }
+);
+
+
+/* =========================================================
+   EVENT LOG
+   ========================================================= */
+
+function logEvent(message){
+
+ const time=
+  new Date().toLocaleTimeString(
+   [],
+   {
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit"
+   }
+  );
+
+ const e=
+  document.createElement(
+   "div"
+  );
+
+ e.className="event";
+
+ e.innerHTML=
+  `<b>${time}</b> ${message}`;
+
+ eventLog.prepend(e);
+
+ while(
+  eventLog.children.length>50
+ ){
+
+  eventLog.removeChild(
+   eventLog.lastChild
+  );
+
+ }
+
+}
+
+
+/* =========================================================
+   START RADAR
+   ========================================================= */
+
+function startRadar(){
+
+ if(radarRunning)return;
+
+ createObjects();
+
+ radarRunning=true;
+
+ document.getElementById(
+  "radarState"
+ ).textContent=
+  "ONLINE";
+
+ document.getElementById(
+  "modeText"
+ ).textContent=
+  "SEARCH";
+
+ document.getElementById(
+  "systemStatus"
+ ).textContent=
+  "RADAR ONLINE";
+
+ document.getElementById(
+  "systemDot"
+ ).classList.add(
+  "active"
+ );
+
+ logEvent(
+  "TACTICAL RADAR ONLINE — 8 KM RANGE"
+ );
+
+ logEvent(
+  "16 UNKNOWN AERIAL CONTACTS DETECTED"
+ );
+
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
 
 function resetSystem(){
 
-    location.reload();
+ radarRunning=false;
+ aiRunning=false;
+
+ aiTimer=0;
+
+ jammerActive=false;
+ jammerSeconds=300;
+
+ sweepAngle=0;
+
+ objects=[];
+ selectedObjects=[];
+
+ counterDrones=[];
+ counterDroneSerial=0;
+
+ document.getElementById(
+  "radarState"
+ ).textContent=
+  "OFFLINE";
+
+ document.getElementById(
+  "aiState"
+ ).textContent=
+  "AI OFF";
+
+ document.getElementById(
+  "modeText"
+ ).textContent=
+  "STANDBY";
+
+ document.getElementById(
+  "systemStatus"
+ ).textContent=
+  "SYSTEM STANDBY";
+
+ document.getElementById(
+  "systemDot"
+ ).classList.remove(
+  "active"
+ );
+
+ eventLog.innerHTML="";
+
+ renderCounters();
+ updateTable();
+ updateJammerUI();
+
+ logEvent(
+  "SYSTEM RESET — RADAR STANDBY / CONTACTS CLEARED"
+ );
 
 }
 
 
-/* MAIN LOOP */
+/* =========================================================
+   BUTTONS
+   ========================================================= */
 
-function loop(){
+startRadarBtn.onclick=startRadar;
+startAIBtn.onclick=startAI;
+resetBtn.onclick=resetSystem;
+releaseCounterBtn.onclick=releaseCounterDrone;
+inspectSelectedBtn.onclick=inspectSelected;
+jammerOnBtn.onclick=activateJammer;
+jammerOffBtn.onclick=stopJammer;
 
-    updateObjects();
 
-    drawRadar();
+/* =========================================================
+   MAIN LOOP
+   ========================================================= */
 
-    requestAnimationFrame(
-        loop
-    );
+function loop(now){
+
+ const dt=
+  Math.min(
+   (now-lastTime)/1000,
+   .05
+  );
+
+ lastTime=now;
+
+
+ if(radarRunning){
+
+  sweepAngle+=dt*.95;
+
+  if(sweepAngle>Math.PI*2){
+
+   sweepAngle-=Math.PI*2;
+
+  }
+
+ }
+
+
+ updateJammer(dt);
+ updateObjects(dt);
+ updateAI(dt);
+ updateCounters(dt);
+
+
+ if(now-lastUI>200){
+
+  updateTable();
+  renderCounters();
+
+  lastUI=now;
+
+ }
+
+
+ drawRadar();
+ drawEnvironment();
+
+
+ /*
+  OBJECTS ONLY APPEAR AFTER START RADAR.
+ */
+
+ if(radarRunning){
+
+  objects.forEach(
+   drawObject
+  );
+
+  counterDrones.forEach(
+   drawCounterDrone
+  );
+
+ }
+
+
+ requestAnimationFrame(loop);
 
 }
 
 
-/* START */
+/* =========================================================
+   INITIAL STATE
+   ========================================================= */
 
-updateTimer();
+updateEnvironmentUI();
+updateJammerUI();
+renderCounters();
+updateTable();
 
-loop();
+logEvent(
+ "SKYNETRA SIMULATION READY — RADAR STANDBY"
+);
+
+requestAnimationFrame(loop);
 
 </script>
 
